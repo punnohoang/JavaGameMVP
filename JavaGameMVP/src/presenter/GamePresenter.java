@@ -3,14 +3,13 @@ package presenter;
 import model.Ball;
 import model.GameModel;
 import util.DatabaseManager;
-
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
 public class GamePresenter {
     private final GameModel model;
     private final String playerName;
-
     private long startTime;
     private long elapsedTime;
     private boolean left, right;
@@ -18,7 +17,8 @@ public class GamePresenter {
     private boolean wasDead = false;
     private boolean hasWonFinalMap = false;
     private boolean gameOver = false;
-    private boolean isPaused = false;  // Biến dừng thời gian khi game kết thúc
+    private boolean isPaused = false;
+    private int lastPassedColumnsCount = 0; // Thêm để hỗ trợ cơ chế 2
 
     public GamePresenter(GameModel model, String playerName) {
         this.model = model;
@@ -38,7 +38,7 @@ public class GamePresenter {
             wasDead = true;
             System.out.println("Ball died! Deaths: " + deathCount);
 
-            // ✅ Ghi nhận kết quả khi chết
+            // Ghi nhận kết quả khi chết
             DatabaseManager.recordFinalResult(playerName, deathCount);
             DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
 
@@ -51,7 +51,6 @@ public class GamePresenter {
 
         checkWinAndSwitchMap();
     }
-
 
     private void checkWinAndSwitchMap() {
         if (model.getBall().isDead()) return;
@@ -75,8 +74,8 @@ public class GamePresenter {
                 gameOver = true;
                 System.out.println("🎉 You won the final map!");
                 DatabaseManager.recordFinalResult(playerName, deathCount);
-                DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds()); // Lưu thời gian chơi
-                isPaused = true;  // Dừng thời gian khi thắng
+                DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
+                isPaused = true;
             }
         }
     }
@@ -87,13 +86,53 @@ public class GamePresenter {
 
     public void restart() {
         Ball ball = model.getBall();
+
+        /*
+        // Cơ chế 1: Trở về vị trí ban đầu của map
         ball.setPosition(0, 400);
         model.getGameMap().updateCamera(ball.x, 640);
-        startTime = System.currentTimeMillis(); // Khởi động lại thời gian khi restart
+        startTime = System.currentTimeMillis();
         elapsedTime = 0;
-        left = right = wasDead = false;
-        gameOver = false;  // Kích hoạt lại trò chơi sau khi restart
-        isPaused = false;  // Tiếp tục thời gian khi restart
+        left = false;
+        right = false;
+        wasDead = false;
+        gameOver = false;
+        isPaused = false;
+        */
+
+        // Cơ chế 2: Trở về cột ngay trước vùng chết
+        int newX = 0;
+        int newY = 400;
+        int columnsToRestore = 0;
+
+        if (ball.getPassedColumnsCount() > 0) {
+            int lastColumnX = ball.getLastSafeColumnX();
+            for (Rectangle column : model.getGameMap().getColumns()) {
+                if (column.x == lastColumnX) {
+                    newX = column.x;
+                    newY = column.y - ball.height;
+                    break;
+                }
+            }
+            ball.clearPassedColumns();
+            for (Rectangle column : model.getGameMap().getColumns()) {
+                if (column.x <= lastColumnX) {
+                    ball.addPassedColumn(column);
+                    columnsToRestore++;
+                }
+            }
+        }
+
+        ball.setPosition(newX, newY);
+        model.getGameMap().updateCamera(newX, 640);
+        left = false;
+        right = false;
+        wasDead = false;
+        lastPassedColumnsCount = columnsToRestore;
+        startTime = System.currentTimeMillis();
+        elapsedTime = 0;
+        gameOver = false;
+        isPaused = false;
     }
 
     public void handleKeyPressed(int keyCode) {
@@ -142,8 +181,8 @@ public class GamePresenter {
     }
 
     public int getPlayTimeInSeconds() {
-        if (isPaused) return (int) (elapsedTime / 1000);  // Trả về thời gian đã chơi nếu game bị dừng
-        return (int) ((System.currentTimeMillis() - startTime + elapsedTime) / 1000); // Tính thời gian khi game đang chạy
+        if (isPaused) return (int) (elapsedTime / 1000);
+        return (int) ((System.currentTimeMillis() - startTime + elapsedTime) / 1000);
     }
 
     public String getFormattedPlayTime() {

@@ -1,6 +1,8 @@
 package model;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Ball {
     public int x = 0, y = 400;
@@ -10,9 +12,10 @@ public class Ball {
     public final int gravity = 1;
     public final int groundY = 430;
     private boolean isDead = false;
-
     private GameMap gameMap;
     private final int screenWidth = 640;
+    private List<Rectangle> passedColumns = new ArrayList<>(); // Lưu các cột đã qua
+    private int lastSafeColumnX = 0; // Tọa độ X của cột an toàn cuối
 
     public Ball(GameMap gameMap) {
         this.gameMap = gameMap;
@@ -35,6 +38,11 @@ public class Ball {
                 velocityY = 0;
                 onGround = true;
                 collided = true;
+                // Cập nhật cột an toàn khi đứng trên cột
+                lastSafeColumnX = col.x;
+                if (!passedColumns.contains(col)) {
+                    passedColumns.add(col);
+                }
                 break;
             }
         }
@@ -109,19 +117,38 @@ public class Ball {
         this.isDead = dead;
     }
 
-	public int getX() {
-		return x;
-	}
+    public int getX() {
+        return x;
+    }
 
-	public void setX(int x) {
-		this.x = x;
-	}
+    public void setX(int x) {
+        this.x = x;
+    }
 
-	public int getY() {
-		return y;
-	}
+    public int getY() {
+        return y;
+    }
 
-	public void setY(int y) {
-		this.y = y;
-	}
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    // Thêm các phương thức cho cơ chế 2
+    public int getPassedColumnsCount() {
+        return passedColumns.size();
+    }
+
+    public int getLastSafeColumnX() {
+        return lastSafeColumnX;
+    }
+
+    public void clearPassedColumns() {
+        passedColumns.clear();
+    }
+
+    public void addPassedColumn(Rectangle column) {
+        if (!passedColumns.contains(column)) {
+            passedColumns.add(column);
+        }
+    }
 }
