@@ -1,10 +1,7 @@
 package presenter;
 
-import model.Ball;
-import model.GameModel;
-import model.GameTimer;
+import model.*;
 import util.DatabaseManager;
-
 import java.awt.event.KeyEvent;
 import java.util.List;
 
@@ -20,29 +17,36 @@ public class GamePresenter {
     private boolean gameOver = false;
     private boolean isPaused = false;
 
+    private long totalPlayTime = 0; // Tổng thời gian chơi thực tế (milliseconds)
+
     public GamePresenter(GameModel model, String playerName) {
         this.model = model;
         this.playerName = playerName;
         this.gameTimer = new GameTimer();
+        gameTimer.start(); // Bắt đầu đếm thời gian
     }
 
     public void update() {
-        if (gameOver || model.getBall().isDead() || isPaused) return;
+        if (gameOver || isPaused) return;
 
         Ball ball = model.getBall();
         ball.update(left, right);
 
+        // Kiểm tra nếu bóng chết
         if (ball.isDead() && !wasDead && !model.isWin()) {
             deathCount++;
             wasDead = true;
-            System.out.println("Ball died! Deaths: " + deathCount);
 
+            // Dừng timer và lưu thời gian
+            gameTimer.stop();
+            totalPlayTime += gameTimer.getElapsedTime();
+
+            // Lưu kết quả
             DatabaseManager.recordFinalResult(playerName, deathCount);
             DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
 
             gameOver = true;
             isPaused = true;
-            gameTimer.stop();
             return;
         } else if (!ball.isDead()) {
             wasDead = false;
@@ -67,15 +71,17 @@ public class GamePresenter {
 
             if (!model.isLastMap()) {
                 model.nextMap();
-                System.out.println("Switched to next map!");
             } else if (!hasWonFinalMap) {
                 hasWonFinalMap = true;
                 gameOver = true;
-                System.out.println("🎉 You won the final map!");
+                isPaused = true;
+
+                // Dừng timer và lưu thời gian
+                gameTimer.stop();
+                totalPlayTime += gameTimer.getElapsedTime();
+
                 DatabaseManager.recordFinalResult(playerName, deathCount);
                 DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
-                isPaused = true;
-                gameTimer.stop();
             }
         }
     }
@@ -85,9 +91,9 @@ public class GamePresenter {
 
         isPaused = !isPaused;
         if (isPaused) {
-            gameTimer.stop();
+            gameTimer.pause();
         } else {
-            gameTimer.start();
+            gameTimer.resume();
         }
     }
 
@@ -95,10 +101,14 @@ public class GamePresenter {
         Ball ball = model.getBall();
         ball.setPosition(0, 400);
         model.getGameMap().updateCamera(ball.x, 640);
-        gameTimer.reset();
+
+        // Reset trạng thái game
         left = right = wasDead = false;
         gameOver = false;
         isPaused = false;
+
+        // Tiếp tục từ thời gian dừng
+        gameTimer.restart();
     }
 
     public void jump() {
@@ -156,11 +166,15 @@ public class GamePresenter {
     }
 
     public int getPlayTimeInSeconds() {
-        return (int) (gameTimer.getElapsedTime() / 1000);
+        return (int) (totalPlayTime / 1000); // Chỉ dùng totalPlayTime
     }
 
     public String getFormattedPlayTime() {
-        return gameTimer.getFormattedTime();
+        long totalMillis = gameTimer.getElapsedTime();
+        long seconds = totalMillis / 1000;
+        long minutes = seconds / 60;
+        seconds %= 60;
+        return String.format("%02d:%02d", minutes, seconds);
     }
 
     public boolean isPaused() {

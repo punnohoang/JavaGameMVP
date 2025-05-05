@@ -38,8 +38,8 @@ public class GamePanel extends JPanel implements ActionListener {
         super.paintComponent(g);
         render(g);
 
-        // Vẽ overlay pause nếu game đang pause
-        if (presenter.isPaused()) {
+        // Vẽ overlay pause chỉ khi game chưa kết thúc và game đang pause
+        if (presenter.isPaused() && !presenter.isDead() && !presenter.hasWonFinalMap()) {
             drawPauseOverlay(g);
         }
 
