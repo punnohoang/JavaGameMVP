@@ -6,7 +6,7 @@ import java.util.List;
 
 public class DatabaseManager {
     private static final String DRIVER_CLASS = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-    private static final String URL = "jdbc:sqlserver://PUNNO:1433;databaseName=Score;encrypt=false;trustServerCertificate=true;";
+    private static final String URL = "jdbc:sqlserver://DESKTOP-9CKDHNV:1433;databaseName=Score;encrypt=false;trustServerCertificate=true;";
     private static final String USER = "sa";
     private static final String PASSWORD = "123456789";
 
