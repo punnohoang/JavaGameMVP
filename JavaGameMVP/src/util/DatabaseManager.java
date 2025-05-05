@@ -24,9 +24,9 @@ public class DatabaseManager {
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, playerName);
-            stmt.setInt(2, 0); // Điểm khởi đầu
-            stmt.setInt(3, 0); // Số lần chết khởi đầu
-            stmt.setInt(4, 0); // Thời gian chơi khởi đầu
+            stmt.setInt(2, 0);
+            stmt.setInt(3, 0);
+            stmt.setInt(4, 0);
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -46,6 +46,42 @@ public class DatabaseManager {
         }
     }
 
+    // Lưu điểm, số lần chết
+    public static void savePlayerResult(String playerName, int score, int deathCount) {
+        String checkSql = "SELECT COUNT(*) FROM HighScores WHERE playerName = ?";
+        String updateSql = "UPDATE HighScores SET score = ?, deathCount = ? WHERE playerName = ?";
+        String insertSql = "INSERT INTO HighScores (playerName, score, deathCount, playTime) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            // Kiểm tra người chơi tồn tại
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setString(1, playerName);
+                ResultSet rs = checkStmt.executeQuery();
+                rs.next();
+                boolean exists = rs.getInt(1) > 0;
+                if (exists) {
+                    // Cập nhật
+                    try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                        updateStmt.setInt(1, score);
+                        updateStmt.setInt(2, deathCount);
+                        updateStmt.setString(3, playerName);
+                        updateStmt.executeUpdate();
+                    }
+                } else {
+                    // Thêm mới
+                    try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                        insertStmt.setString(1, playerName);
+                        insertStmt.setInt(2, score);
+                        insertStmt.setInt(3, deathCount);
+                        insertStmt.setInt(4, 0);
+                        insertStmt.executeUpdate();
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     // Lấy top 3 người chơi có điểm cao nhất
     public static List<String> getTop3Players() {
         List<String> topPlayers = new ArrayList<>();
@@ -54,10 +90,10 @@ public class DatabaseManager {
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-            	String player = rs.getString("playerName");
-            	int score = rs.getInt("score");
-            	int time = rs.getInt("playTime");
-            	topPlayers.add(player + " - " + score + " điểm - " + time + "s");
+                String player = rs.getString("playerName");
+                int score = rs.getInt("score");
+                int time = rs.getInt("playTime");
+                topPlayers.add(player + " - " + score + " điểm - " + time + "s");
             }
         } catch (SQLException e) {
             e.printStackTrace();

@@ -14,8 +14,8 @@ public class Ball {
     private boolean isDead = false;
     private GameMap gameMap;
     private final int screenWidth = 640;
-    private List<Rectangle> passedColumns = new ArrayList<>(); // Lưu các cột đã qua
-    private int lastSafeColumnX = 0; // Tọa độ X của cột an toàn cuối
+    private List<Rectangle> passedColumns = new ArrayList<>();
+    private int lastSafeColumnX = 0;
 
     public Ball(GameMap gameMap) {
         this.gameMap = gameMap;
@@ -38,12 +38,20 @@ public class Ball {
                 velocityY = 0;
                 onGround = true;
                 collided = true;
-                // Cập nhật cột an toàn khi đứng trên cột
                 lastSafeColumnX = col.x;
                 if (!passedColumns.contains(col)) {
                     passedColumns.add(col);
+                    //System.out.println("Added column (standing) at x=" + col.x + ", passedColumns size: " + passedColumns.size());
                 }
                 break;
+            }
+        }
+
+        // Thêm cột khi đi qua (dù không đứng trên)
+        for (Rectangle col : gameMap.getColumns()) {
+            if (x + width > col.x && !passedColumns.contains(col)) {
+                passedColumns.add(col);
+                //System.out.println("Added column (passed) at x=" + col.x + ", passedColumns size: " + passedColumns.size());
             }
         }
 
@@ -133,7 +141,6 @@ public class Ball {
         this.y = y;
     }
 
-    // Thêm các phương thức cho cơ chế 2
     public int getPassedColumnsCount() {
         return passedColumns.size();
     }
