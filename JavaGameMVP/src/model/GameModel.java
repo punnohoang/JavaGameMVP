@@ -7,7 +7,7 @@ public class GameModel {
     private final List<GameMap> maps = new ArrayList<>();
     private int currentMapIndex = 0;
     private Ball ball;
-    private int score = 0;
+    private int score = 0; // Thêm để quản lý điểm
 
     public GameModel() {
         maps.add(new Map1());
@@ -31,9 +31,10 @@ public class GameModel {
     public boolean nextMap() {
         if (currentMapIndex + 1 < maps.size()) {
             currentMapIndex++;
+            // Giữ ball, chỉ reset vị trí và trạng thái
             ball.setMap(getGameMap());
             ball.setPosition(0, 400);
-            ball.clearPassedColumns();
+            ball.clearPassedColumns(); // Reset cột đã qua khi chuyển map
             return true;
         }
         return false;
@@ -56,9 +57,10 @@ public class GameModel {
         return currentMapIndex;
     }
 
+    // Thêm để quản lý điểm
     public void addScore(int points) {
         score += points;
-        if (score < 0) score = 0;
+        if (score < 0) score = 0; // Đảm bảo điểm không âm
     }
 
     public int getScore() {

@@ -26,9 +26,6 @@ public class GamePresenter {
         this.playerName = playerName;
         this.startTime = System.currentTimeMillis();
         this.elapsedTime = 0;
-        DatabaseManager.insertNewPlayer(playerName);
-        // Debug tổng số cột trong map
-        //System.out.println("Total columns in map: " + model.getGameMap().getColumns().size());
     }
 
     public void update() {
@@ -39,13 +36,10 @@ public class GamePresenter {
 
         // Cộng điểm khi qua cột mới
         int currentPassedColumns = ball.getPassedColumnsCount();
-        //System.out.println("Current passed columns: " + currentPassedColumns + 
-        //                  ", Last passed columns: " + lastPassedColumnsCount + 
-        //                  ", Score: " + model.getScore()); // Debug
         if (currentPassedColumns > lastPassedColumnsCount) {
             int newColumns = currentPassedColumns - lastPassedColumnsCount;
             model.addScore(newColumns);
-            System.out.println("Added " + newColumns + " points, New score: " + model.getScore());
+            System.out.println("score: " + model.getScore());
             lastPassedColumnsCount = currentPassedColumns;
         }
 
@@ -84,21 +78,23 @@ public class GamePresenter {
             int mapIndex = model.getCurrentMapIndex();
 
             if (!hasWonFinalMap) {
+                // Lưu điểm hiện tại khi thắng map
                 DatabaseManager.savePlayerResult(playerName, model.getScore(), deathCount);
             }
 
             if (!model.isLastMap()) {
                 model.nextMap();
                 System.out.println("Switched to next map!");
-                //System.out.println("Total columns in new map: " + model.getGameMap().getColumns().size()); // Debug
-                lastPassedColumnsCount = 0;
+                lastPassedColumnsCount = 0; // Reset số cột khi chuyển map
             } else if (!hasWonFinalMap) {
                 hasWonFinalMap = true;
                 gameOver = true;
                 isPaused = true;
                 System.out.println("🎉 You won the final map! Final score: " + model.getScore() + ", Deaths: " + deathCount);
+                // Lưu kết quả cuối cùng
                 DatabaseManager.savePlayerResult(playerName, model.getScore(), deathCount);
                 DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
+                // Hiển thị top 3 người chơi
                 System.out.println("🏆 Top 3 Players:");
                 List<String> topPlayers = DatabaseManager.getTop3Players();
                 if (topPlayers.isEmpty()) {
@@ -161,7 +157,6 @@ public class GamePresenter {
         right = false;
         wasDead = false;
         lastPassedColumnsCount = columnsToRestore;
-        System.out.println("Restarted, restored columns: " + columnsToRestore); // Debug
         startTime = System.currentTimeMillis();
         elapsedTime = 0;
         gameOver = false;
