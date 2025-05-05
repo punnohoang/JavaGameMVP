@@ -3,29 +3,39 @@ package model;
 public class GameTimer {
     private long startTime;
     private long elapsedTime; // milliseconds
+    private long pauseTime;   // Tổng thời gian đã pause
     private boolean running;
 
+    public GameTimer() {
+        reset();
+    }
+
     public void start() {
-        startTime = System.currentTimeMillis();
-        running = true;
+        if (!running) {
+            startTime = System.currentTimeMillis() - elapsedTime;
+            running = true;
+        }
     }
 
     public void stop() {
-        elapsedTime = getElapsedTime();
-        running = false;
+        if (running) {
+            elapsedTime = getElapsedTime();
+            running = false;
+        }
     }
 
     public void reset() {
         elapsedTime = 0;
+        pauseTime = 0;
         startTime = System.currentTimeMillis();
+        running = true;
     }
 
     public long getElapsedTime() {
         if (running) {
-            return System.currentTimeMillis() - startTime;
-        } else {
-            return elapsedTime;
+            return System.currentTimeMillis() - startTime + pauseTime;
         }
+        return elapsedTime;
     }
 
     public String getFormattedTime() {

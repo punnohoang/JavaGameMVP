@@ -2,6 +2,7 @@ package presenter;
 
 import model.Ball;
 import model.GameModel;
+import model.GameTimer;
 import util.DatabaseManager;
 
 import java.awt.event.KeyEvent;
@@ -10,21 +11,19 @@ import java.util.List;
 public class GamePresenter {
     private final GameModel model;
     private final String playerName;
+    private final GameTimer gameTimer;
 
-    private long startTime;
-    private long elapsedTime;
     private boolean left, right;
     private int deathCount = 0;
     private boolean wasDead = false;
     private boolean hasWonFinalMap = false;
     private boolean gameOver = false;
-    private boolean isPaused = false;  // Biến dừng thời gian khi game kết thúc
+    private boolean isPaused = false;
 
     public GamePresenter(GameModel model, String playerName) {
         this.model = model;
         this.playerName = playerName;
-        this.startTime = System.currentTimeMillis();
-        this.elapsedTime = 0;
+        this.gameTimer = new GameTimer();
     }
 
     public void update() {
@@ -38,12 +37,12 @@ public class GamePresenter {
             wasDead = true;
             System.out.println("Ball died! Deaths: " + deathCount);
 
-            // ✅ Ghi nhận kết quả khi chết
             DatabaseManager.recordFinalResult(playerName, deathCount);
             DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
 
             gameOver = true;
             isPaused = true;
+            gameTimer.stop();
             return;
         } else if (!ball.isDead()) {
             wasDead = false;
@@ -51,7 +50,6 @@ public class GamePresenter {
 
         checkWinAndSwitchMap();
     }
-
 
     private void checkWinAndSwitchMap() {
         if (model.getBall().isDead()) return;
@@ -75,35 +73,51 @@ public class GamePresenter {
                 gameOver = true;
                 System.out.println("🎉 You won the final map!");
                 DatabaseManager.recordFinalResult(playerName, deathCount);
-                DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds()); // Lưu thời gian chơi
-                isPaused = true;  // Dừng thời gian khi thắng
+                DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
+                isPaused = true;
+                gameTimer.stop();
             }
         }
     }
 
-    public void jump() {
-        model.getBall().jump();
+    public void togglePause() {
+        if (gameOver) return;
+
+        isPaused = !isPaused;
+        if (isPaused) {
+            gameTimer.stop();
+        } else {
+            gameTimer.start();
+        }
     }
 
     public void restart() {
         Ball ball = model.getBall();
         ball.setPosition(0, 400);
         model.getGameMap().updateCamera(ball.x, 640);
-        startTime = System.currentTimeMillis(); // Khởi động lại thời gian khi restart
-        elapsedTime = 0;
+        gameTimer.reset();
         left = right = wasDead = false;
-        gameOver = false;  // Kích hoạt lại trò chơi sau khi restart
-        isPaused = false;  // Tiếp tục thời gian khi restart
+        gameOver = false;
+        isPaused = false;
+    }
+
+    public void jump() {
+        model.getBall().jump();
     }
 
     public void handleKeyPressed(int keyCode) {
+        if (keyCode == KeyEvent.VK_P) {
+            togglePause();
+            return;
+        }
+
         if (isDead()) {
             if (keyCode == KeyEvent.VK_R) restart();
             else if (keyCode == KeyEvent.VK_Q) System.exit(0);
             return;
         }
 
-        if (gameOver) return;
+        if (gameOver || isPaused) return;
 
         switch (keyCode) {
             case KeyEvent.VK_LEFT -> left = true;
@@ -142,14 +156,14 @@ public class GamePresenter {
     }
 
     public int getPlayTimeInSeconds() {
-        if (isPaused) return (int) (elapsedTime / 1000);  // Trả về thời gian đã chơi nếu game bị dừng
-        return (int) ((System.currentTimeMillis() - startTime + elapsedTime) / 1000); // Tính thời gian khi game đang chạy
+        return (int) (gameTimer.getElapsedTime() / 1000);
     }
 
     public String getFormattedPlayTime() {
-        int seconds = getPlayTimeInSeconds();
-        int minutes = seconds / 60;
-        seconds %= 60;
-        return String.format("%02d:%02d", minutes, seconds);
+        return gameTimer.getFormattedTime();
+    }
+
+    public boolean isPaused() {
+        return isPaused;
     }
 }

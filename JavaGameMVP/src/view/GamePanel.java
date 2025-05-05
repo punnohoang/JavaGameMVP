@@ -37,6 +37,12 @@ public class GamePanel extends JPanel implements ActionListener {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         render(g);
+
+        // Vẽ overlay pause nếu game đang pause
+        if (presenter.isPaused()) {
+            drawPauseOverlay(g);
+        }
+
     }
 
     private void render(Graphics g) {
@@ -101,6 +107,22 @@ public class GamePanel extends JPanel implements ActionListener {
                 y += 25;
             }
         }
+    }
+
+    private void drawPauseOverlay(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 150)); // Màu đen mờ
+        g.fillRect(0, 0, getWidth(), getHeight());
+
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 48));
+        String pauseText = "PAUSED";
+        FontMetrics fm = g.getFontMetrics();
+        int textWidth = fm.stringWidth(pauseText);
+        int textHeight = fm.getHeight();
+        int x = (getWidth() - textWidth) / 2;
+        int y = (getHeight() - textHeight) / 2 + fm.getAscent();
+
+        g.drawString(pauseText, x, y);
     }
 
     private class GameKeyAdapter extends KeyAdapter {
