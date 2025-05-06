@@ -1,1 +1,29 @@
 /bin/
+# IDE settings
+.idea/
+*.iml
+
+# Build output
+/out/
+/build/
+/target/
+*.class
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# HTTP client requests (IDEA feature)
+.httpRequests/
+
+# Maven
+/mavenHomeManager.xml
+
+# IntelliJ database tools
+/dataSources/
+*.local.xml
+
+
