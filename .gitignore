@@ -1,1 +1,24 @@
-/bin/
+# Ignore project files from IntelliJ IDEA
+.idea/
+*.iml
+
+# Ignore build output folders
+out/
+target/
+
+# Ignore Eclipse project files
+.project
+.classpath
+
+# Ignore OS-generated files
+.DS_Store
+Thumbs.db
+
+# Ignore Maven wrapper files
+mvnw
+mvnw.cmd
+.idea/
+
+# Ignore Gradle wrapper files
+gradlew
+gradlew.bat
