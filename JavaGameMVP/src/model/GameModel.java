@@ -7,12 +7,12 @@ public class GameModel {
     private final List<GameMap> maps = new ArrayList<>();
     private int currentMapIndex = 0;
     private Ball ball;
-    
+    private int score = 0; // Thêm để quản lý điểm
+
     public GameModel() {
         maps.add(new Map1());
         maps.add(new Map2());
         maps.add(new Map3());
-        // 👉 Thêm map mới tại đây nếu cần
         ball = new Ball(maps.get(currentMapIndex));
     }
 
@@ -31,25 +31,39 @@ public class GameModel {
     public boolean nextMap() {
         if (currentMapIndex + 1 < maps.size()) {
             currentMapIndex++;
-            ball = new Ball(getGameMap());  // chuyển map, reset ball
+            // Giữ ball, chỉ reset vị trí và trạng thái
+            ball.setMap(getGameMap());
+            ball.setPosition(0, 400);
+            ball.clearPassedColumns(); // Reset cột đã qua khi chuyển map
             return true;
         }
-        return false; // không còn map
+        return false;
     }
 
     public boolean isLastMap() {
         return currentMapIndex == maps.size() - 1;
     }
 
-	public void setCurrentMapIndex(int int1) {
-		currentMapIndex++;
-		
-	}
+    public void setCurrentMapIndex(int index) {
+        if (index >= 0 && index < maps.size()) {
+            currentMapIndex = index;
+            ball.setMap(getGameMap());
+            ball.setPosition(0, 400);
+            ball.clearPassedColumns();
+        }
+    }
 
-	public int getCurrentMapIndex() {
-		// TODO Auto-generated method stub
-		return currentMapIndex;
-	  
-	}
+    public int getCurrentMapIndex() {
+        return currentMapIndex;
+    }
 
+    // Thêm để quản lý điểm
+    public void addScore(int points) {
+        score += points;
+        if (score < 0) score = 0; // Đảm bảo điểm không âm
+    }
+
+    public int getScore() {
+        return score;
+    }
 }

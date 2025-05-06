@@ -1,6 +1,8 @@
 package model;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Ball {
     public int x = 0, y = 400;
@@ -10,9 +12,10 @@ public class Ball {
     public final int gravity = 1;
     public final int groundY = 430;
     private boolean isDead = false;
-
     private GameMap gameMap;
     private final int screenWidth = 640;
+    private List<Rectangle> passedColumns = new ArrayList<>();
+    private int lastSafeColumnX = 0;
 
     public Ball(GameMap gameMap) {
         this.gameMap = gameMap;
@@ -35,7 +38,20 @@ public class Ball {
                 velocityY = 0;
                 onGround = true;
                 collided = true;
+                lastSafeColumnX = col.x;
+                if (!passedColumns.contains(col)) {
+                    passedColumns.add(col);
+                    //System.out.println("Added column (standing) at x=" + col.x + ", passedColumns size: " + passedColumns.size());
+                }
                 break;
+            }
+        }
+
+        // Thêm cột khi đi qua (dù không đứng trên)
+        for (Rectangle col : gameMap.getColumns()) {
+            if (x + width > col.x && !passedColumns.contains(col)) {
+                passedColumns.add(col);
+                //System.out.println("Added column (passed) at x=" + col.x + ", passedColumns size: " + passedColumns.size());
             }
         }
 
@@ -109,19 +125,37 @@ public class Ball {
         this.isDead = dead;
     }
 
-	public int getX() {
-		return x;
-	}
+    public int getX() {
+        return x;
+    }
 
-	public void setX(int x) {
-		this.x = x;
-	}
+    public void setX(int x) {
+        this.x = x;
+    }
 
-	public int getY() {
-		return y;
-	}
+    public int getY() {
+        return y;
+    }
 
-	public void setY(int y) {
-		this.y = y;
-	}
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    public int getPassedColumnsCount() {
+        return passedColumns.size();
+    }
+
+    public int getLastSafeColumnX() {
+        return lastSafeColumnX;
+    }
+
+    public void clearPassedColumns() {
+        passedColumns.clear();
+    }
+
+    public void addPassedColumn(Rectangle column) {
+        if (!passedColumns.contains(column)) {
+            passedColumns.add(column);
+        }
+    }
 }

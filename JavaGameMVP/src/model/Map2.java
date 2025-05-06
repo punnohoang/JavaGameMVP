@@ -1,6 +1,8 @@
 package model;
 
 import java.awt.*;
+import java.util.List;
+import util.MapDataLoader;
 
 public class Map2 extends AbstractMap {
     private final Rectangle arrowRect;
@@ -10,11 +12,11 @@ public class Map2 extends AbstractMap {
         // Nền riêng cho Map2
         background = new Background(new Color(255, 200, 200));
         // Cột riêng cho Map2
-        int[] columnHeights = {80, 120, 150, 60, 0, 70, 120, 140, 80, 130, 170, 100};
-        initColumns(columnHeights, 100, 60, 40, 430);
+        List<int[]> columnPositions =  MapDataLoader.readColumn("C:\\Users\\hoang\\git\\JavaGamneMVP\\JavaGameMVP\\src\\model\\Map2.txt");
+		initColumns(columnPositions, 40, 430); // width=40, baseY=430
 
         // Đích đến (mũi tên)
-        arrowRect = new Rectangle(2950, 370, 40, 500);
+        arrowRect = new Rectangle(2950, 370, 40, 60);
 
         // Foothold mặc định (màu xám)
         foothold = new Foothold();
