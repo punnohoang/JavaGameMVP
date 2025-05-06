@@ -41,17 +41,11 @@ public class Ball {
                 lastSafeColumnX = col.x;
                 if (!passedColumns.contains(col)) {
                     passedColumns.add(col);
-                    //System.out.println("Added column (standing) at x=" + col.x + ", passedColumns size: " + passedColumns.size());
                 }
                 break;
             }
-        }
-
-        // Thêm cột khi đi qua (dù không đứng trên)
-        for (Rectangle col : gameMap.getColumns()) {
             if (x + width > col.x && !passedColumns.contains(col)) {
                 passedColumns.add(col);
-                //System.out.println("Added column (passed) at x=" + col.x + ", passedColumns size: " + passedColumns.size());
             }
         }
 
@@ -77,7 +71,6 @@ public class Ball {
             }
         }
 
-        // Kiểm tra va chạm với vùng chết
         for (Rectangle dz : gameMap.getDeathZoneBounds()) {
             if (nextRect.intersects(dz) || new Rectangle(x, y + velocityY, width, height).intersects(dz)) {
                 isDead = true;
@@ -143,6 +136,10 @@ public class Ball {
 
     public int getPassedColumnsCount() {
         return passedColumns.size();
+    }
+
+    public List<Rectangle> getPassedColumns() {
+        return passedColumns;
     }
 
     public int getLastSafeColumnX() {

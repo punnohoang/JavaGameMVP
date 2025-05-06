@@ -26,6 +26,7 @@ public class GamePresenter {
         this.playerName = playerName;
         this.startTime = System.currentTimeMillis();
         this.elapsedTime = 0;
+        DatabaseManager.insertNewPlayer(playerName);
     }
 
     public void update() {
@@ -34,33 +35,24 @@ public class GamePresenter {
         Ball ball = model.getBall();
         ball.update(left, right);
 
-        // Cộng điểm khi qua cột mới
         int currentPassedColumns = ball.getPassedColumnsCount();
         if (currentPassedColumns > lastPassedColumnsCount) {
             int newColumns = currentPassedColumns - lastPassedColumnsCount;
             model.addScore(newColumns);
-            System.out.println("score: " + model.getScore());
             lastPassedColumnsCount = currentPassedColumns;
         }
 
         if (ball.isDead() && !wasDead && !model.isWin()) {
             deathCount++;
             wasDead = true;
-            System.out.println("Ball died! Deaths: " + deathCount);
-
-            // Trừ 10 điểm khi chết, nếu điểm < 10 thì đặt về 0
             int currentScore = model.getScore();
             if (currentScore >= 10) {
                 model.addScore(-10);
             } else {
                 model.addScore(-currentScore);
             }
-            System.out.println("Lost 10 points! New score: " + model.getScore());
-
-            // Lưu kết quả khi chết
             DatabaseManager.savePlayerResult(playerName, model.getScore(), deathCount);
             DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
-
             gameOver = true;
             isPaused = true;
             return;
@@ -78,24 +70,18 @@ public class GamePresenter {
             int mapIndex = model.getCurrentMapIndex();
 
             if (!hasWonFinalMap) {
-                // Lưu điểm hiện tại khi thắng map
                 DatabaseManager.savePlayerResult(playerName, model.getScore(), deathCount);
             }
 
             if (!model.isLastMap()) {
                 model.nextMap();
-                System.out.println("Switched to next map!");
-                lastPassedColumnsCount = 0; // Reset số cột khi chuyển map
+                lastPassedColumnsCount = 0;
             } else if (!hasWonFinalMap) {
                 hasWonFinalMap = true;
                 gameOver = true;
                 isPaused = true;
-                System.out.println("🎉 You won the final map! Final score: " + model.getScore() + ", Deaths: " + deathCount);
-                // Lưu kết quả cuối cùng
                 DatabaseManager.savePlayerResult(playerName, model.getScore(), deathCount);
                 DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
-                // Hiển thị top 3 người chơi
-                System.out.println("🏆 Top 3 Players:");
                 List<String> topPlayers = DatabaseManager.getTop3Players();
                 if (topPlayers.isEmpty()) {
                     System.out.println("No players in leaderboard yet.");
@@ -127,8 +113,8 @@ public class GamePresenter {
         gameOver = false;
         isPaused = false;
         */
-
-        // Cơ chế 2: Trở về cột ngay trước vùng chết
+        /*
+        // Cơ chế 2: Trở về cột an toàn cuối (lastSafeColumnX)
         int newX = 0;
         int newY = 400;
         int columnsToRestore = 0;
@@ -150,6 +136,40 @@ public class GamePresenter {
                 }
             }
         }
+		*/
+        
+        // Cơ chế 3: Trở về cột gần nhất trong passedColumns
+        int newX = 0;
+        int newY = 400;
+        int columnsToRestore = 0;
+        if (ball.getPassedColumnsCount() > 0) {
+            int ballX = ball.getX();
+            Rectangle nearestColumn = null;
+            int minDistance = Integer.MAX_VALUE;
+
+            for (Rectangle column : model.getGameMap().getColumns()) {
+                if (ball.getPassedColumns().contains(column)) {
+                    int distance = Math.abs(ballX - column.x);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearestColumn = column;
+                    }
+                }
+            }
+
+            if (nearestColumn != null) {
+                newX = nearestColumn.x;
+                newY = nearestColumn.y - ball.height;
+                ball.clearPassedColumns();
+                for (Rectangle column : model.getGameMap().getColumns()) {
+                    if (column.x <= newX) {
+                        ball.addPassedColumn(column);
+                        columnsToRestore++;
+                    }
+                }
+            }
+        }
+        
 
         ball.setPosition(newX, newY);
         model.getGameMap().updateCamera(newX, 640);
@@ -161,6 +181,7 @@ public class GamePresenter {
         elapsedTime = 0;
         gameOver = false;
         isPaused = false;
+        System.out.println("Restarted to x=" + newX + ", restored " + columnsToRestore + " columns");
     }
 
     public void handleKeyPressed(int keyCode) {
