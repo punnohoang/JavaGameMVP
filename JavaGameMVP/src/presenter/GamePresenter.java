@@ -98,27 +98,33 @@ public class GamePresenter {
         model.getBall().jump();
     }
 
+    // Hàm restart: Cơ chế 1 - Quay về map đầu tiên và lưu điểm
     public void restart() {
+        model.restart();
         Ball ball = model.getBall();
-
-        /*
-        // Cơ chế 1: Trở về vị trí ban đầu của map
-        ball.setPosition(0, 400);
-        model.getGameMap().updateCamera(ball.x, 640);
+        ball.clearPassedColumns();
+        model.getGameMap().updateCamera(ball.getX(), 640);
         startTime = System.currentTimeMillis();
         elapsedTime = 0;
         left = false;
         right = false;
         wasDead = false;
+        lastPassedColumnsCount = 0;
         gameOver = false;
         isPaused = false;
-        */
-        /*
-        // Cơ chế 2: Trở về cột an toàn cuối (lastSafeColumnX)
+        DatabaseManager.savePlayerResult(playerName, model.getScore(), deathCount);
+        DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
+        System.out.println("Restarted to map " + (model.getCurrentMapIndex() + 1));
+    }
+
+    // Hàm hồi sinh: Cơ chế 2 (cột an toàn cuối) hoặc 3 (cột gần nhất)
+    public boolean revive(boolean useMechanism2) {
+        Ball ball = model.getBall();
         int newX = 0;
         int newY = 400;
         int columnsToRestore = 0;
 
+        // Cơ chế 2: Hồi sinh tại cột an toàn cuối
         if (ball.getPassedColumnsCount() > 0) {
             int lastColumnX = ball.getLastSafeColumnX();
             for (Rectangle column : model.getGameMap().getColumns()) {
@@ -128,20 +134,15 @@ public class GamePresenter {
                     break;
                 }
             }
-            ball.clearPassedColumns();
             for (Rectangle column : model.getGameMap().getColumns()) {
                 if (column.x <= lastColumnX) {
-                    ball.addPassedColumn(column);
                     columnsToRestore++;
                 }
             }
         }
-		*/
-        
-        // Cơ chế 3: Trở về cột gần nhất trong passedColumns
-        int newX = 0;
-        int newY = 400;
-        int columnsToRestore = 0;
+
+        /*
+        // Cơ chế 3: Hồi sinh tại cột gần nhất trong passedColumns
         if (ball.getPassedColumnsCount() > 0) {
             int ballX = ball.getX();
             Rectangle nearestColumn = null;
@@ -160,34 +161,41 @@ public class GamePresenter {
             if (nearestColumn != null) {
                 newX = nearestColumn.x;
                 newY = nearestColumn.y - ball.height;
-                ball.clearPassedColumns();
                 for (Rectangle column : model.getGameMap().getColumns()) {
                     if (column.x <= newX) {
-                        ball.addPassedColumn(column);
                         columnsToRestore++;
                     }
                 }
             }
         }
-        
+        */
 
-        ball.setPosition(newX, newY);
-        model.getGameMap().updateCamera(newX, 640);
-        left = false;
-        right = false;
-        wasDead = false;
-        lastPassedColumnsCount = columnsToRestore;
-        startTime = System.currentTimeMillis();
-        elapsedTime = 0;
-        gameOver = false;
-        isPaused = false;
-        System.out.println("Restarted to x=" + newX + ", restored " + columnsToRestore + " columns");
+        // Gọi hàm revive trong model
+        boolean revived = model.revive(newX, newY, columnsToRestore);
+        if (revived) {
+            model.getGameMap().updateCamera(newX, 640);
+            left = false;
+            right = false;
+            wasDead = false;
+            lastPassedColumnsCount = columnsToRestore;
+            gameOver = false;
+            isPaused = false;
+            DatabaseManager.savePlayerResult(playerName, model.getScore(), deathCount);
+            System.out.println("Revived to x=" + newX + ", restored " + columnsToRestore + " columns");
+        }
+        return revived;
     }
 
     public void handleKeyPressed(int keyCode) {
         if (isDead()) {
-            if (keyCode == KeyEvent.VK_R) restart();
-            else if (keyCode == KeyEvent.VK_Q) System.exit(0);
+            if (keyCode == KeyEvent.VK_R) {
+                restart();
+            } else if (keyCode == KeyEvent.VK_V) {
+                // Nhấn V để hồi sinh, mặc định dùng cơ chế 2
+                revive(true);
+            } else if (keyCode == KeyEvent.VK_Q) {
+                System.exit(0);
+            }
             return;
         }
 
@@ -239,5 +247,13 @@ public class GamePresenter {
         int minutes = seconds / 60;
         seconds %= 60;
         return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    public int getReviveCount() {
+        return model.getReviveCount();
+    }
+
+    public int getMaxRevives() {
+        return model.getMaxRevives();
     }
 }
