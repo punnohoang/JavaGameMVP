@@ -26,7 +26,7 @@ public class GamePresenter {
         this.playerName = playerName;
         this.startTime = System.currentTimeMillis();
         this.elapsedTime = 0;
-        DatabaseManager.insertNewPlayer(playerName);
+        
     }
 
     public void update() {
