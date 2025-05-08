@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractMap implements GameMap {
-	protected final int width = 3000;
+	protected final int width = 4500;
 	protected final int height = 500;
 	protected int cameraX = 0;
 	protected final List<Rectangle> columns = new ArrayList<>();

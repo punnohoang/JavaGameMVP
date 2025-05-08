@@ -65,7 +65,6 @@ public class GamePanel extends JPanel implements ActionListener {
         // Hiển thị thông tin game
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.PLAIN, 16));
-        g.drawString("Deaths: " + presenter.getDeathCount(), 10, 30);
         g.drawString("Time: " + presenter.getFormattedPlayTime(), 10, 50);
 
         // Kiểm tra kết thúc game (game over hoặc thắng)
