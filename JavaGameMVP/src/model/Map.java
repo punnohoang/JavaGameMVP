@@ -10,7 +10,21 @@ public class Map extends AbstractMap {
 
     public Map(int mapNumber) {
         // Thiết lập màu nền dựa trên mapNumber
-        Color backgroundColor = mapNumber == 1 ? new Color(200, 255, 255) : new Color(255, 200, 200);
+    	Color backgroundColor;
+    	switch (mapNumber) {
+    	    case 1:
+    	        backgroundColor = new Color(200, 255, 255); // xanh nhạt
+    	        break;
+    	    case 2:
+    	        backgroundColor = new Color(255, 200, 200); // hồng nhạt
+    	        break;
+    	    case 3:
+    	        backgroundColor = new Color(200, 255, 200); // xanh lá nhạt
+    	        break;
+    	    default:
+    	        backgroundColor = Color.LIGHT_GRAY; // fallback
+    	}
+
         background = new Background(backgroundColor);
 
         // Đọc cột từ file Map<mapNumber>.txt

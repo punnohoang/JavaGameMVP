@@ -5,9 +5,6 @@ import util.DatabaseManager;
 import root.GameFrame;
 
 public class LoginScreen extends JFrame {
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     private JTextField nameField;
     private JButton startButton;
@@ -21,20 +18,9 @@ public class LoginScreen extends JFrame {
         nameField = new JTextField(15);
         startButton = new JButton("Start");
 
-        // Khi người chơi nhấn nút "Start"
-        startButton.addActionListener(e -> {
-            String playerName = nameField.getText();
-            if (!playerName.isEmpty()) {
-                // Lưu tên người chơi vào cơ sở dữ liệu với điểm ban đầu = 0
-                DatabaseManager.insertNewPlayer(playerName);
-                
-                dispose(); // tắt màn hình login
-                new GameFrame(playerName); // mở game với tên người chơi
-            } else {
-                // Nếu không nhập tên thì hiển thị thông báo
-                JOptionPane.showMessageDialog(this, "Please enter a name to start the game.");
-            }
-        });
+        // Nhấn Enter trong nameField hoặc click nút Start đều bắt đầu game
+        nameField.addActionListener(e -> startGame());
+        startButton.addActionListener(e -> startGame());
 
         JPanel panel = new JPanel();
         panel.add(new JLabel("Enter your name:"));
@@ -43,5 +29,16 @@ public class LoginScreen extends JFrame {
 
         add(panel);
         setVisible(true);
+    }
+
+    private void startGame() {
+        String playerName = nameField.getText();
+        if (!playerName.isEmpty()) {
+            DatabaseManager.insertNewPlayer(playerName);
+            dispose();
+            new GameFrame(playerName);
+        } else {
+            JOptionPane.showMessageDialog(this, "Please enter a name to start the game.");
+        }
     }
 }
