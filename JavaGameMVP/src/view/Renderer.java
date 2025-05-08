@@ -11,7 +11,7 @@ public class Renderer {
 
     public void render(Graphics g, GamePresenter presenter, int panelWidth) {
         GameModel model = presenter.getModel();
-        GameMap map = model.getGameMap();
+        Map map = model.getGameMap();
 
         map.getBackground().draw(g, map.getCameraX(), map.getWidth(), map.getHeight());
 
@@ -31,38 +31,81 @@ public class Renderer {
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.PLAIN, 16));
         g.drawString("Time: " + presenter.getFormattedPlayTime(), 10, 50);
+        g.drawString("Map: " + (model.getCurrentMapIndex() + 1), 10, 70);
+
+        if (presenter.isPaused() && !presenter.isDead() && !presenter.hasWonFinalMap()) {
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Arial", Font.BOLD, 36));
+            String pauseMessage = "Paused";
+            int stringWidth = g.getFontMetrics().stringWidth(pauseMessage);
+            g.drawString(pauseMessage, (panelWidth - stringWidth) / 2, map.getHeight() / 2);
+        }
 
         if (presenter.isDead() || presenter.hasWonFinalMap()) {
-            drawEndGameScreen(g, presenter);
+            drawEndGameScreen(g, presenter, panelWidth, map.getHeight());
         }
     }
 
-    private void drawEndGameScreen(Graphics g, GamePresenter presenter) {
+    private void drawEndGameScreen(Graphics g, GamePresenter presenter, int panelWidth, int panelHeight) {
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.BOLD, 36));
 
+        FontMetrics fm = g.getFontMetrics();
+        int y = panelHeight / 2 - 50;
+
         if (presenter.isDead()) {
-            g.drawString("GAME OVER", 200, 200);
+            String gameOverMsg = "GAME OVER";
+            int stringWidth = fm.stringWidth(gameOverMsg);
+            g.drawString(gameOverMsg, (panelWidth - stringWidth) / 2, y);
             g.setFont(new Font("Arial", Font.PLAIN, 20));
-            g.drawString("Press R to Restart", 230, 250);
-            g.drawString("Press Q to Quit", 240, 280);
-        } else {
-            g.drawString("YOU WIN!", 220, 200);
+            y += 50;
+            String restartMsg = "Press R to Restart";
+            stringWidth = fm.stringWidth(restartMsg);
+            g.drawString(restartMsg, (panelWidth - stringWidth) / 2, y);
+            y += 30;
+            String quitMsg = "Press Q to Quit";
+            stringWidth = fm.stringWidth(quitMsg);
+            g.drawString(quitMsg, (panelWidth - stringWidth) / 2, y);
+            if (presenter.getReviveCount() < presenter.getMaxRevives() && !presenter.hasWonFinalMap()) {
+                y += 30;
+                String reviveMsg = "Press V to Revive (" + (presenter.getMaxRevives() - presenter.getReviveCount()) + " left)";
+                stringWidth = fm.stringWidth(reviveMsg);
+                g.drawString(reviveMsg, (panelWidth - stringWidth) / 2, y);
+            }
+        } else if (presenter.hasWonFinalMap()) {
+            String winMsg = "YOU WIN!";
+            int stringWidth = fm.stringWidth(winMsg);
+            g.drawString(winMsg, (panelWidth - stringWidth) / 2, y);
+            g.setFont(new Font("Arial", Font.PLAIN, 20));
+            y += 50;
+            String restartMsg = "Press R to Restart";
+            stringWidth = fm.stringWidth(restartMsg);
+            g.drawString(restartMsg, (panelWidth - stringWidth) / 2, y);
+            y += 30;
+            String quitMsg = "Press Q to Quit";
+            stringWidth = fm.stringWidth(quitMsg);
+            g.drawString(quitMsg, (panelWidth - stringWidth) / 2, y);
         }
 
         g.setFont(new Font("Arial", Font.PLAIN, 20));
-        g.drawString("Time Played: " + presenter.getFormattedPlayTime(), 230, 310);
+        y += 40;
+        String timeMsg = "Time Played: " + presenter.getFormattedPlayTime();
+        int stringWidth = fm.stringWidth(timeMsg);
+        g.drawString(timeMsg, (panelWidth - stringWidth) / 2, y);
 
         List<String> top3 = presenter.getTop3Players();
         if (top3 != null && !top3.isEmpty()) {
             g.setFont(new Font("Arial", Font.BOLD, 18));
-            g.drawString("Top 3 Players:", 230, 340);
-            int y = 370;
+            y += 30;
+            String top3Msg = "Top 3 Players:";
+            stringWidth = fm.stringWidth(top3Msg);
+            g.drawString(top3Msg, (panelWidth - stringWidth) / 2, y);
+            g.setFont(new Font("Arial", Font.PLAIN, 16));
             for (String info : top3) {
-                g.drawString(info, 240, y);
                 y += 25;
+                stringWidth = fm.stringWidth(info);
+                g.drawString(info, (panelWidth - stringWidth) / 2, y);
             }
         }
-
     }
 }

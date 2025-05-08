@@ -6,9 +6,9 @@ import java.util.List;
 
 public class DatabaseManager {
     private static final String DRIVER_CLASS = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-    private static final String URL = "jdbc:sqlserver://DESKTOP-9CKDHNV:1433;databaseName=Score;encrypt=false;trustServerCertificate=true;";
+    private static final String URL = "jdbc:sqlserver://DESKTOP-L8D5TII:1433;databaseName=Score;encrypt=false;trustServerCertificate=true;";
     private static final String USER = "sa";
-    private static final String PASSWORD = "123456";
+    private static final String PASSWORD = "1122334455";
 
     static {
         try {
@@ -18,68 +18,54 @@ public class DatabaseManager {
         }
     }
 
-    // Gọi khi người chơi nhập tên để bắt đầu chơi
-    public static void insertNewPlayer(String playerName) {
-        String sql = "INSERT INTO HighScores (playerName, score, playTime) VALUES (?, ?, ?)";
+    // Thêm bản ghi mới và trả về scoreId
+    public static int recordPlayTime(String playerName, int playTime, int score) {
+        String sql = "INSERT INTO HighScores (playerName, playTime, score) VALUES (?, ?, ?); SELECT SCOPE_IDENTITY() AS scoreId;";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, playerName);
-            stmt.setInt(2, 0);
-            stmt.setInt(3, 0);;
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Cập nhật điểm
-    public static void updateScore(String playerName, int additionalScore) {
-        String sql = "UPDATE HighScores SET score = score + ? WHERE playerName = ?";
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, additionalScore);
-            stmt.setString(2, playerName);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Lưu điểm, số lần chết
-    public static void savePlayerResult(String playerName, int score) {
-        String checkSql = "SELECT COUNT(*) FROM HighScores WHERE playerName = ?";
-        String updateSql = "UPDATE HighScores SET score = ? WHERE playerName = ?";
-        String insertSql = "INSERT INTO HighScores (playerName, score, playTime) VALUES (?, ?, ?)";
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
-            // Kiểm tra người chơi tồn tại
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                checkStmt.setString(1, playerName);
-                ResultSet rs = checkStmt.executeQuery();
-                rs.next();
-                boolean exists = rs.getInt(1) > 0;
-                if (exists) {
-                    // Cập nhật
-                    try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
-                        updateStmt.setInt(1, score);
-                        updateStmt.setString(2, playerName);
-                        updateStmt.executeUpdate();
-                    }
-                } else {
-                    // Thêm mới
-                    try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
-                        insertStmt.setString(1, playerName);
-                        insertStmt.setInt(2, score);
-                        insertStmt.setInt(4, 0);
-                        insertStmt.executeUpdate();
-                    }
-                }
+            stmt.setInt(2, playTime);
+            stmt.setInt(3, score);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("scoreId");
             }
         } catch (SQLException e) {
+            System.err.println("⚠️ Không thể lưu lượt chơi. Kiểm tra lại bảng HighScores.");
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    // Reset playTime và score cho bản ghi có scoreId
+    public static void resetPlayerRecord(int scoreId) {
+        String sql = "UPDATE HighScores SET playTime = 0, score = 0 WHERE scoreId = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, scoreId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("⚠️ Không thể reset bản ghi. Kiểm tra lại bảng HighScores.");
             e.printStackTrace();
         }
     }
 
-    // Lấy top 3 người chơi có điểm cao nhất
+    // Cập nhật điểm và thời gian cho lượt chơi có scoreId
+    public static void updateScore(int scoreId, int score, int playTime) {
+        String sql = "UPDATE HighScores SET score = ?, playTime = ? WHERE scoreId = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, score);
+            stmt.setInt(2, playTime);
+            stmt.setInt(3, scoreId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("⚠️ Không thể cập nhật điểm. Kiểm tra lại bảng HighScores.");
+            e.printStackTrace();
+        }
+    }
+
+    // Lấy top 3 lượt chơi có điểm cao nhất
     public static List<String> getTop3Players() {
         List<String> topPlayers = new ArrayList<>();
         String sql = "SELECT playerName, score, playTime FROM HighScores ORDER BY score DESC, playTime ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY";
@@ -93,23 +79,12 @@ public class DatabaseManager {
                 topPlayers.add(player + " - " + score + " điểm - " + time + "s");
             }
         } catch (SQLException e) {
+            System.err.println("⚠️ Không thể lấy top 3 người chơi. Kiểm tra lại bảng HighScores.");
             e.printStackTrace();
         }
         return topPlayers;
     }
 
-
-    // Cập nhật thời gian chơi
-    public static void recordPlayTime(String playerName, int playTime) {
-        String sql = "UPDATE HighScores SET playTime = ? WHERE playerName = ?";
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, playTime);
-            stmt.setString(2, playerName);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("⚠️ Không thể cập nhật playTime. Kiểm tra lại cột playTime trong bảng HighScores.");
-            e.printStackTrace();
-        }
+    public static void insertNewPlayer(String playerName) {
     }
 }

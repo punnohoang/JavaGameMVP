@@ -1,7 +1,6 @@
 package presenter;
 
-import model.Ball;
-import model.GameModel;
+import model.*;
 import util.DatabaseManager;
 
 import java.awt.Rectangle;
@@ -11,21 +10,24 @@ import java.util.List;
 public class GamePresenter {
     private final GameModel model;
     private final String playerName;
-    private long startTime;
-    private long elapsedTime;
+    private final GameTimer gameTimer;
+    private int scoreId; // Lưu scoreId từ database
+
     private boolean left, right;
+    private int deathCount = 0;
     private boolean wasDead = false;
     private boolean hasWonFinalMap = false;
     private boolean gameOver = false;
-    private boolean isPaused = false;
+    public boolean isPaused = false;
+
     private int lastPassedColumnsCount = 0;
 
     public GamePresenter(GameModel model, String playerName) {
         this.model = model;
         this.playerName = playerName;
-        this.startTime = System.currentTimeMillis();
-        this.elapsedTime = 0;
-        DatabaseManager.insertNewPlayer(playerName);
+        this.gameTimer = new GameTimer();
+        this.scoreId = DatabaseManager.recordPlayTime(playerName, 0, 0); // Lấy scoreId khi bắt đầu
+        gameTimer.start(); // Bắt đầu đếm thời gian
     }
 
     public void update() {
@@ -37,18 +39,26 @@ public class GamePresenter {
         int currentPassedColumns = ball.getPassedColumnsCount();
         if (currentPassedColumns > lastPassedColumnsCount) {
             int newColumns = currentPassedColumns - lastPassedColumnsCount;
-            model.addScore(1); // Cộng 1 điểm khi qua cột
+            model.addScore(newColumns);
             lastPassedColumnsCount = currentPassedColumns;
-            System.out.println("Score updated: " + model.getScore());
+            DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
         }
 
         if (ball.isDead() && !wasDead && !model.isWin()) {
+            deathCount++;
             wasDead = true;
-            System.out.println("Ball died, score: " + model.getScore());
-            DatabaseManager.savePlayerResult(playerName, model.getScore());
-            DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
+
+            int currentScore = model.getScore();
+            if (currentScore >= 10) {
+                model.addScore(-10);
+            } else {
+                model.addScore(-currentScore);
+            }
+
+            gameTimer.pause(); // Tạm dừng thời gian khi chết
             gameOver = true;
             isPaused = true;
+            DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
             return;
         } else if (!ball.isDead()) {
             wasDead = false;
@@ -61,11 +71,8 @@ public class GamePresenter {
         if (model.getBall().isDead()) return;
 
         if (model.isWin()) {
-            int mapIndex = model.getCurrentMapIndex();
-
             if (!hasWonFinalMap) {
-                System.out.println("Win map, saving score: " + model.getScore());
-                DatabaseManager.savePlayerResult(playerName, model.getScore());
+                DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
             }
 
             if (!model.isLastMap()) {
@@ -75,9 +82,8 @@ public class GamePresenter {
                 hasWonFinalMap = true;
                 gameOver = true;
                 isPaused = true;
-                System.out.println("Final map won, saving score: " + model.getScore());
-                DatabaseManager.savePlayerResult(playerName, model.getScore());
-                DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
+
+                DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
                 List<String> topPlayers = DatabaseManager.getTop3Players();
                 if (topPlayers.isEmpty()) {
                     System.out.println("No players in leaderboard yet.");
@@ -90,59 +96,55 @@ public class GamePresenter {
         }
     }
 
-    public void jump() {
-        model.getBall().jump();
+    public void togglePause() {
+        if (gameOver || isDead()) return; // Ngăn pause khi chết hoặc game over
+
+        isPaused = !isPaused;
+        if (isPaused) {
+            gameTimer.pause();
+        } else {
+            gameTimer.resume();
+        }
     }
 
     public void restart() {
         model.restart();
         Ball ball = model.getBall();
+
         ball.clearPassedColumns();
         model.getGameMap().updateCamera(ball.getX(), 640);
-        startTime = System.currentTimeMillis();
-        elapsedTime = 0;
         left = false;
         right = false;
         wasDead = false;
         lastPassedColumnsCount = 0;
+        deathCount = 0;
+        model.resetScore(); // Reset điểm về 0
         gameOver = false;
         isPaused = false;
-        System.out.println("Restarting, saving score: " + model.getScore());
-        DatabaseManager.savePlayerResult(playerName, model.getScore());
-        DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
+        gameTimer.restart(); // Reset thời gian về 0
+        DatabaseManager.resetPlayerRecord(scoreId); // Reset playTime và score trong database
         System.out.println("Restarted to map " + (model.getCurrentMapIndex() + 1));
     }
 
-    public boolean revive(boolean useMechanism3) {
+    public boolean revive(boolean useMechanism2) {
         Ball ball = model.getBall();
+
         int newX = 0;
         int newY = 400;
         int columnsToRestore = 0;
 
         if (ball.getPassedColumnsCount() > 0) {
-            int ballX = ball.getX();
-            Rectangle nearestColumn = null;
-            int minDistance = Integer.MAX_VALUE;
-
-            // Tìm cột gần nhất trong các cột đã vượt qua
-            for (Rectangle column : ball.getPassedColumns()) {
-                int distance = Math.abs(ballX - column.x);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    nearestColumn = column;
+            int lastColumnX = ball.getLastSafeColumnX();
+            for (Rectangle column : model.getGameMap().getColumns()) {
+                if (column.x == lastColumnX) {
+                    newX = column.x;
+                    newY = column.y - ball.height;
+                    break;
                 }
             }
-
-            // Nếu tìm được cột gần nhất đã vượt qua
-            if (nearestColumn != null) {
-                newX = nearestColumn.x;
-                newY = nearestColumn.y - ball.height;
-
-                // Đếm lại đúng số lượng cột đã vượt qua tính đến newX
-                for (Rectangle col : ball.getPassedColumns()) {
-                    if (col.x <= newX) {
-                        columnsToRestore++;
-                    }
+            for (Rectangle column : model.getGameMap().getColumns()) {
+                if (column.x <= lastColumnX) {
+                    columnsToRestore++;
                 }
             }
         }
@@ -156,15 +158,23 @@ public class GamePresenter {
             lastPassedColumnsCount = columnsToRestore;
             gameOver = false;
             isPaused = false;
-            System.out.println("Revived to x=" + newX + ", restored " + columnsToRestore + " columns, score: " + model.getScore());
-            DatabaseManager.savePlayerResult(playerName, model.getScore());
-        } else {
-            System.out.println("Revive failed: Max revives reached or other error.");
+            gameTimer.resume(); // Tiếp tục thời gian từ lúc dừng
+            DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
+            System.out.println("Revived to x=" + newX + ", restored " + columnsToRestore + " columns");
         }
         return revived;
     }
 
+    public void jump() {
+        model.getBall().jump();
+    }
+
     public void handleKeyPressed(int keyCode) {
+        if (keyCode == KeyEvent.VK_P) {
+            togglePause();
+            return;
+        }
+
         if (isDead()) {
             if (keyCode == KeyEvent.VK_R) {
                 restart();
@@ -176,7 +186,7 @@ public class GamePresenter {
             return;
         }
 
-        if (gameOver) return;
+        if (gameOver || isPaused) return;
 
         switch (keyCode) {
             case KeyEvent.VK_LEFT -> left = true;
@@ -198,6 +208,10 @@ public class GamePresenter {
         return model;
     }
 
+    public int getDeathCount() {
+        return deathCount;
+    }
+
     public boolean isDead() {
         return model.getBall().isDead();
     }
@@ -211,13 +225,13 @@ public class GamePresenter {
     }
 
     public int getPlayTimeInSeconds() {
-        if (isPaused) return (int) (elapsedTime / 1000);
-        return (int) ((System.currentTimeMillis() - startTime + elapsedTime) / 1000);
+        return (int) (gameTimer.getElapsedTime() / 1000);
     }
 
     public String getFormattedPlayTime() {
-        int seconds = getPlayTimeInSeconds();
-        int minutes = seconds / 60;
+        long totalMillis = gameTimer.getElapsedTime();
+        long seconds = totalMillis / 1000;
+        long minutes = seconds / 60;
         seconds %= 60;
         return String.format("%02d:%02d", minutes, seconds);
     }
@@ -228,5 +242,9 @@ public class GamePresenter {
 
     public int getMaxRevives() {
         return model.getMaxRevives();
+    }
+
+    public boolean isPaused() {
+        return isPaused;
     }
 }
