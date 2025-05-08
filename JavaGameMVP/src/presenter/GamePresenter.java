@@ -63,19 +63,30 @@ public class GamePresenter {
         if (model.getBall().isDead()) return;
 
         if (model.isWin()) {
-            if (!hasWonFinalMap) {
-                DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
-            }
-
             if (!model.isLastMap()) {
+                // Chuyển sang map tiếp theo nếu không phải map cuối
                 model.nextMap();
                 lastPassedColumnsCount = 0;
+                DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
             } else if (!hasWonFinalMap) {
+                // Thắng map cuối: Điều chỉnh điểm để đạt 100
+                int currentScore = model.getScore();
+                int pointsToAdd = 100 - currentScore; // Tính số điểm cần cộng
+                if (pointsToAdd >= 0) {
+                    model.addScore(pointsToAdd); // Cộng điểm để đạt 100
+                } else {
+                    model.addScore(-currentScore); // Nếu điểm > 100, đặt về 0
+                    model.addScore(100); // Rồi cộng 100
+                }
+
                 hasWonFinalMap = true;
                 gameOver = true;
                 isPaused = true;
 
+                // Lưu điểm số vào cơ sở dữ liệu
                 DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
+
+                // Lấy và hiển thị top 3 người chơi
                 List<String> topPlayers = DatabaseManager.getTop3Players();
                 if (topPlayers.isEmpty()) {
                     System.out.println("No players in leaderboard yet.");
