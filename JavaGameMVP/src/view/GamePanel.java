@@ -38,5 +38,7 @@ public class GamePanel extends JPanel implements ActionListener {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         renderer.render(g, engine.getPresenter(), getWidth());
+
     }
 }
+

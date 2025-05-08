@@ -4,6 +4,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import presenter.GamePresenter;
 
+
 public class InputManager extends KeyAdapter {
     private final GamePresenter presenter;
 
