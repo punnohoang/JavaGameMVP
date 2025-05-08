@@ -30,7 +30,6 @@ public class Renderer {
 
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.PLAIN, 16));
-        g.drawString("Deaths: " + presenter.getDeathCount(), 10, 30);
         g.drawString("Time: " + presenter.getFormattedPlayTime(), 10, 50);
 
         if (presenter.isDead() || presenter.hasWonFinalMap()) {
