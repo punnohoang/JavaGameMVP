@@ -8,7 +8,8 @@ import java.util.List;
 
 public class Renderer {
     private final DeathZone deathZoneDrawer = new DeathZone();
-
+    private final int screenWidth = 640; // Giả định chiều rộng màn hình
+    private final int screenHeight = 480; // Giả định chiều cao màn hình
     public void render(Graphics g, GamePresenter presenter, int panelWidth) {
         GameModel model = presenter.getModel();
         Map map = model.getGameMap();
@@ -41,9 +42,40 @@ public class Renderer {
             g.drawString(pauseMessage, (panelWidth - stringWidth) / 2, map.getHeight() / 2);
         }
 
-        if (presenter.isDead() || presenter.hasWonFinalMap()) {
+        if (presenter.isDead() && !presenter.hasWonFinalMap()) {
             drawEndGameScreen(g, presenter, panelWidth, map.getHeight());
         }
+        
+        if (presenter.hasWonFinalMap()) {
+            // Vẽ nền mờ để làm nổi bật
+            g.setColor(new Color(0, 0, 0, 150));
+            g.fillRect(0, 0, screenWidth, screenHeight);
+
+            // Vẽ "You Win"
+            g.setColor(Color.YELLOW);
+            g.setFont(new Font("Arial", Font.BOLD, 40));
+            String youWin = "You Win!";
+            FontMetrics fm = g.getFontMetrics();
+            int textWidth = fm.stringWidth(youWin);
+            g.drawString(youWin, (screenWidth - textWidth) / 2, screenHeight / 3);
+
+            // Vẽ top 3 người chơi
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.PLAIN, 20));
+            List<String> topPlayers = presenter.getTop3Players();
+            if (topPlayers == null || topPlayers.isEmpty()) {
+                String noPlayers = "No players in leaderboard yet.";
+                textWidth = fm.stringWidth(noPlayers);
+                g.drawString(noPlayers, (screenWidth - textWidth) / 2, screenHeight / 2);
+            } else {
+                for (int i = 0; i < topPlayers.size(); i++) {
+                    String player = (i + 1) + ". " + topPlayers.get(i);
+                    textWidth = fm.stringWidth(player);
+                    g.drawString(player, (screenWidth - textWidth) / 2, screenHeight / 2 + i * 30);
+                }
+            }
+        }
+    
     }
 
     private void drawEndGameScreen(Graphics g, GamePresenter presenter, int panelWidth, int panelHeight) {

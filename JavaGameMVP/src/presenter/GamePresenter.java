@@ -40,6 +40,7 @@ public class GamePresenter {
         if (currentPassedColumns > lastPassedColumnsCount) {
             int newColumns = currentPassedColumns - lastPassedColumnsCount;
             model.addScore(1); // Cộng 1 điểm khi qua cột
+            System.out.println(model.getScore());
             lastPassedColumnsCount = currentPassedColumns;
             DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
         }
@@ -114,8 +115,8 @@ public class GamePresenter {
         isPaused = false;
         gameTimer.restart(); // Reset thời gian về 0
         // Tạo bản ghi mới trong database, thay vì reset bản ghi cũ
-        scoreId = DatabaseManager.recordPlayTime(playerName, 0, 0); // Tạo scoreId mới
-        System.out.println("Restarted to map " + (model.getCurrentMapIndex() + 1));
+        //scoreId = DatabaseManager.recordPlayTime(playerName, 0, 0); // Tạo scoreId mới
+        //System.out.println("Restarted to map " + (model.getCurrentMapIndex() + 1));
     }
 
     public boolean revive(boolean useMechanism2) {
@@ -152,7 +153,7 @@ public class GamePresenter {
             isPaused = false;
             gameTimer.resume(); // Tiếp tục thời gian từ lúc dừng
             DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
-            System.out.println("Revived to x=" + newX + ", restored " + columnsToRestore + " columns");
+            //System.out.println("Revived to x=" + newX + ", restored " + columnsToRestore + " columns");
         }
         return revived;
     }

@@ -10,7 +10,7 @@ public class GameModel {
     private Ball ball;
     private int score;
     private int reviveCount; // Theo dõi số lần hồi sinh
-    private static final int MAX_REVIVES = 2; // Tối đa 2 lần hồi sinh
+    private static final int MAX_REVIVES = 1; // Tối đa 2 lần hồi sinh
     private static final int REVIVE_PENALTY = 25; // Phạt 25 điểm mỗi lần hồi sinh
     private int savedScore; // Lưu điểm khi restart
 
