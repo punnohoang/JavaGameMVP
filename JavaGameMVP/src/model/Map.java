@@ -37,11 +37,8 @@ public class Map extends AbstractMap {
         initColumns(columnPositions, 40, 430);
 
         // Thiết lập đích đến (arrowRect)
-        if (mapNumber == 1) {
             arrowRect = new Rectangle(2975, 370, 40, 500);
-        } else {
-            arrowRect = new Rectangle(2950, 370, 40, 60);
-        }
+        
 
         // Khởi tạo foothold
         foothold = new Foothold();
