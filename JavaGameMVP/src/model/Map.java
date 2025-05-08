@@ -38,7 +38,7 @@ public class Map extends AbstractMap {
 
         // Thiết lập đích đến (arrowRect)
 
-            arrowRect = new Rectangle(4350, 370, 40, 500);
+            arrowRect = new Rectangle(4300, 370, 40, 500);
 
 
         // Khởi tạo foothold
