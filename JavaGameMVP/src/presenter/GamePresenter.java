@@ -11,23 +11,21 @@ public class GamePresenter {
     private final GameModel model;
     private final String playerName;
     private final GameTimer gameTimer;
-    private int scoreId; // Lưu scoreId từ database
-
+    private int scoreId;
     private boolean left, right;
     private int deathCount = 0;
     private boolean wasDead = false;
     private boolean hasWonFinalMap = false;
     private boolean gameOver = false;
     public boolean isPaused = false;
-
     private int lastPassedColumnsCount = 0;
 
     public GamePresenter(GameModel model, String playerName) {
         this.model = model;
         this.playerName = playerName;
         this.gameTimer = new GameTimer();
-        this.scoreId = DatabaseManager.recordPlayTime(playerName, 0, 0); // Lấy scoreId khi bắt đầu
-        gameTimer.start(); // Bắt đầu đếm thời gian
+        this.scoreId = DatabaseManager.recordPlayTime(playerName, 0, 0);
+        gameTimer.start();
     }
 
     public void update() {
@@ -39,17 +37,16 @@ public class GamePresenter {
         int currentPassedColumns = ball.getPassedColumnsCount();
         if (currentPassedColumns > lastPassedColumnsCount) {
             int newColumns = currentPassedColumns - lastPassedColumnsCount;
-            model.addScore(1); // Cộng 1 điểm khi qua cột
-            System.out.println(model.getScore());
+            model.addScore(newColumns);
             lastPassedColumnsCount = currentPassedColumns;
             DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
         }
 
         if (ball.isDead() && !wasDead && !model.isWin()) {
-        	wasDead = true;
-            gameTimer.pause(); // Tạm dừng thời gian khi chết
+            wasDead = true;
+            gameTimer.pause();
             gameOver = true;
-            isPaused = true;
+ isPaused = true;
             DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
             return;
         } else if (!ball.isDead()) {
@@ -64,26 +61,26 @@ public class GamePresenter {
 
         if (model.isWin()) {
             if (!model.isLastMap()) {
-                // Chuyển sang map tiếp theo nếu không phải map cuối
                 model.nextMap();
                 lastPassedColumnsCount = 0;
                 DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
             } else if (!hasWonFinalMap) {
                 // Thắng map cuối: Điều chỉnh điểm để đạt 100
                 int currentScore = model.getScore();
-                int pointsToAdd = 100 - currentScore; // Tính số điểm cần cộng
+                int pointsToAdd = 100 - currentScore;
                 if (pointsToAdd >= 0) {
-                    model.addScore(pointsToAdd); // Cộng điểm để đạt 100
+                    model.addScore(pointsToAdd);
                 } else {
-                    model.addScore(-currentScore); // Nếu điểm > 100, đặt về 0
-                    model.addScore(100); // Rồi cộng 100
+                    model.addScore(-currentScore);
+                    model.addScore(100);
                 }
 
                 hasWonFinalMap = true;
                 gameOver = true;
                 isPaused = true;
+                gameTimer.pause(); // Dừng thời gian khi thắng map cuối
 
-                // Lưu điểm số vào cơ sở dữ liệu
+                // Lưu điểm số và thời gian vào cơ sở dữ liệu
                 DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
 
                 // Lấy và hiển thị top 3 người chơi
@@ -100,7 +97,7 @@ public class GamePresenter {
     }
 
     public void togglePause() {
-        if (gameOver || isDead()) return; // Ngăn pause khi chết hoặc game over
+        if (gameOver || isDead()) return;
 
         isPaused = !isPaused;
         if (isPaused) {
@@ -121,13 +118,12 @@ public class GamePresenter {
         wasDead = false;
         lastPassedColumnsCount = 0;
         deathCount = 0;
-        model.resetScore(); // Reset điểm về 0
+        model.resetScore();
         gameOver = false;
         isPaused = false;
-        gameTimer.restart(); // Reset thời gian về 0
-        // Tạo bản ghi mới trong database, thay vì reset bản ghi cũ
-        //scoreId = DatabaseManager.recordPlayTime(playerName, 0, 0); // Tạo scoreId mới
-        //System.out.println("Restarted to map " + (model.getCurrentMapIndex() + 1));
+        gameTimer.restart();
+        scoreId = DatabaseManager.recordPlayTime(playerName, 0, 0);
+        System.out.println("Restarted to map " + (model.getCurrentMapIndex() + 1));
     }
 
     public boolean revive(boolean useMechanism2) {
@@ -162,9 +158,9 @@ public class GamePresenter {
             lastPassedColumnsCount = columnsToRestore;
             gameOver = false;
             isPaused = false;
-            gameTimer.resume(); // Tiếp tục thời gian từ lúc dừng
+            gameTimer.resume();
             DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
-            //System.out.println("Revived to x=" + newX + ", restored " + columnsToRestore + " columns");
+            System.out.println("Revived to x=" + newX + ", restored " + columnsToRestore + " columns");
         }
         return revived;
     }
