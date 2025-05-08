@@ -48,7 +48,7 @@ public class DatabaseManager {
     // Lưu điểm, số lần chết
     public static void savePlayerResult(String playerName, int score) {
         String checkSql = "SELECT COUNT(*) FROM HighScores WHERE playerName = ?";
-        String updateSql = "UPDATE HighScores SET score = ?, deathCount = ? WHERE playerName = ?";
+        String updateSql = "UPDATE HighScores SET score = ? WHERE playerName = ?";
         String insertSql = "INSERT INTO HighScores (playerName, score, playTime) VALUES (?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             // Kiểm tra người chơi tồn tại
@@ -61,7 +61,7 @@ public class DatabaseManager {
                     // Cập nhật
                     try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
                         updateStmt.setInt(1, score);
-                        updateStmt.setString(3, playerName);
+                        updateStmt.setString(2, playerName);
                         updateStmt.executeUpdate();
                     }
                 } else {

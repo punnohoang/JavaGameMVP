@@ -39,11 +39,12 @@ public class GamePresenter {
             int newColumns = currentPassedColumns - lastPassedColumnsCount;
             model.addScore(1); // Cộng 1 điểm khi qua cột
             lastPassedColumnsCount = currentPassedColumns;
+            System.out.println("Score updated: " + model.getScore());
         }
 
         if (ball.isDead() && !wasDead && !model.isWin()) {
             wasDead = true;
-            model.addScore(-1); // Trừ 1 điểm khi thua
+            System.out.println("Ball died, score: " + model.getScore());
             DatabaseManager.savePlayerResult(playerName, model.getScore());
             DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
             gameOver = true;
@@ -63,6 +64,7 @@ public class GamePresenter {
             int mapIndex = model.getCurrentMapIndex();
 
             if (!hasWonFinalMap) {
+                System.out.println("Win map, saving score: " + model.getScore());
                 DatabaseManager.savePlayerResult(playerName, model.getScore());
             }
 
@@ -73,6 +75,7 @@ public class GamePresenter {
                 hasWonFinalMap = true;
                 gameOver = true;
                 isPaused = true;
+                System.out.println("Final map won, saving score: " + model.getScore());
                 DatabaseManager.savePlayerResult(playerName, model.getScore());
                 DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
                 List<String> topPlayers = DatabaseManager.getTop3Players();
@@ -104,12 +107,13 @@ public class GamePresenter {
         lastPassedColumnsCount = 0;
         gameOver = false;
         isPaused = false;
+        System.out.println("Restarting, saving score: " + model.getScore());
         DatabaseManager.savePlayerResult(playerName, model.getScore());
         DatabaseManager.recordPlayTime(playerName, getPlayTimeInSeconds());
         System.out.println("Restarted to map " + (model.getCurrentMapIndex() + 1));
     }
 
-    public boolean revive(boolean useMechanism2) {
+    public boolean revive(boolean useMechanism3) {
         Ball ball = model.getBall();
         int newX = 0;
         int newY = 400;
@@ -120,21 +124,23 @@ public class GamePresenter {
             Rectangle nearestColumn = null;
             int minDistance = Integer.MAX_VALUE;
 
-            for (Rectangle column : model.getGameMap().getColumns()) {
-                if (ball.getPassedColumns().contains(column)) {
-                    int distance = Math.abs(ballX - column.x);
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        nearestColumn = column;
-                    }
+            // Tìm cột gần nhất trong các cột đã vượt qua
+            for (Rectangle column : ball.getPassedColumns()) {
+                int distance = Math.abs(ballX - column.x);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestColumn = column;
                 }
             }
 
+            // Nếu tìm được cột gần nhất đã vượt qua
             if (nearestColumn != null) {
                 newX = nearestColumn.x;
                 newY = nearestColumn.y - ball.height;
-                for (Rectangle column : model.getGameMap().getColumns()) {
-                    if (column.x <= newX) {
+
+                // Đếm lại đúng số lượng cột đã vượt qua tính đến newX
+                for (Rectangle col : ball.getPassedColumns()) {
+                    if (col.x <= newX) {
                         columnsToRestore++;
                     }
                 }
@@ -150,8 +156,10 @@ public class GamePresenter {
             lastPassedColumnsCount = columnsToRestore;
             gameOver = false;
             isPaused = false;
+            System.out.println("Revived to x=" + newX + ", restored " + columnsToRestore + " columns, score: " + model.getScore());
             DatabaseManager.savePlayerResult(playerName, model.getScore());
-            System.out.println("Revived to x=" + newX + ", restored " + columnsToRestore + " columns");
+        } else {
+            System.out.println("Revive failed: Max revives reached or other error.");
         }
         return revived;
     }

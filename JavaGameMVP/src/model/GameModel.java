@@ -10,7 +10,7 @@ public class GameModel {
     private Ball ball;
     private int score;
     private int reviveCount; // Theo dõi số lần hồi sinh
-    private static final int MAX_REVIVES = 3; // Tối đa 3 lần hồi sinh
+    private static final int MAX_REVIVES = 2; // Tối đa 2 lần hồi sinh
     private static final int REVIVE_PENALTY = 25; // Phạt 25 điểm mỗi lần hồi sinh
     private int savedScore; // Lưu điểm khi restart
 
@@ -75,11 +75,17 @@ public class GameModel {
     // Hàm hồi sinh: Đặt lại vị trí bóng nhưng không thay đổi map
     public boolean revive(int newX, int newY, int columnsToRestore) {
         if (reviveCount >= MAX_REVIVES) {
+            System.out.println("Cannot revive: Max revives (" + MAX_REVIVES + ") reached.");
             return false; // Không thể hồi sinh nữa
         }
         reviveCount++; // Tăng số lần hồi sinh
-        score -= REVIVE_PENALTY; // Trừ 25 điểm
-        if (score < 0) score = 0; // Đảm bảo điểm không âm
+        // Trừ 25 điểm, đảm bảo điểm không âm
+        if (score < REVIVE_PENALTY) {
+            score = 0;
+        } else {
+            score -= REVIVE_PENALTY;
+        }
+        System.out.println("Revive penalty applied: -" + REVIVE_PENALTY + ", new score: " + score);
 
         // Đặt lại vị trí bóng
         ball.setPosition(newX, newY);
