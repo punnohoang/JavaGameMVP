@@ -113,7 +113,8 @@ public class GamePresenter {
         gameOver = false;
         isPaused = false;
         gameTimer.restart(); // Reset thời gian về 0
-        DatabaseManager.resetPlayerRecord(scoreId); // Reset playTime và score trong database
+        // Tạo bản ghi mới trong database, thay vì reset bản ghi cũ
+        scoreId = DatabaseManager.recordPlayTime(playerName, 0, 0); // Tạo scoreId mới
         System.out.println("Restarted to map " + (model.getCurrentMapIndex() + 1));
     }
 

@@ -116,7 +116,7 @@ public class GameModel {
     }
 
     public void resetScore() {
-        score = savedScore;
+        score = 0;
         reviveCount = 0;
     }
 }
