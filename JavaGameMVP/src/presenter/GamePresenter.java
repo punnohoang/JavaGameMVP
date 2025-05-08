@@ -39,22 +39,13 @@ public class GamePresenter {
         int currentPassedColumns = ball.getPassedColumnsCount();
         if (currentPassedColumns > lastPassedColumnsCount) {
             int newColumns = currentPassedColumns - lastPassedColumnsCount;
-            model.addScore(newColumns);
+            model.addScore(1); // Cộng 1 điểm khi qua cột
             lastPassedColumnsCount = currentPassedColumns;
             DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
         }
 
         if (ball.isDead() && !wasDead && !model.isWin()) {
-            deathCount++;
-            wasDead = true;
-
-            int currentScore = model.getScore();
-            if (currentScore >= 10) {
-                model.addScore(-10);
-            } else {
-                model.addScore(-currentScore);
-            }
-
+        	wasDead = true;
             gameTimer.pause(); // Tạm dừng thời gian khi chết
             gameOver = true;
             isPaused = true;
