@@ -72,7 +72,7 @@ public class GameModel {
         reviveCount = 0; // Đặt lại số lần hồi sinh
     }
 
-    // Hàm hồi sinh: Đặt lại vị trí bóng nhưng không thay đổi map
+    /*// Hàm hồi sinh: Đặt lại vị trí bóng nhưng không thay đổi map
     public boolean revive(int newX, int newY, int columnsToRestore) {
         if (reviveCount >= MAX_REVIVES) {
             System.out.println("Cannot revive: Max revives (" + MAX_REVIVES + ") reached.");
@@ -99,10 +99,10 @@ public class GameModel {
                 if (restored >= columnsToRestore) break;
             }
         }
-
+		
         return true; // Hồi sinh thành công
     }
-
+	*/
     public int getReviveCount() {
         return reviveCount;
     }

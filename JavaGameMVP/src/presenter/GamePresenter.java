@@ -125,7 +125,7 @@ public class GamePresenter {
         scoreId = DatabaseManager.recordPlayTime(playerName, 0, 0);
         System.out.println("Restarted to map " + (model.getCurrentMapIndex() + 1));
     }
-
+    /*
     public boolean revive(boolean useMechanism2) {
         Ball ball = model.getBall();
 
@@ -164,13 +164,13 @@ public class GamePresenter {
         }
         return revived;
     }
-
+	*/
     public void jump() {
         model.getBall().jump();
     }
 
     public void handleKeyPressed(int keyCode) {
-        if (keyCode == KeyEvent.VK_P) {
+        if (keyCode == KeyEvent.VK_SPACE) {
             togglePause();
             return;
         }
@@ -178,9 +178,9 @@ public class GamePresenter {
         if (isDead()) {
             if (keyCode == KeyEvent.VK_R) {
                 restart();
-            } else if (keyCode == KeyEvent.VK_V) {
-                revive(true);
-            } else if (keyCode == KeyEvent.VK_Q) {
+            } //else if (keyCode == KeyEvent.VK_V) {
+                //revive(true); }	
+            else if (keyCode == KeyEvent.VK_Q) {
                 System.exit(0);
             }
             return;
