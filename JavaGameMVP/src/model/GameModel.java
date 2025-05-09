@@ -9,9 +9,9 @@ public class GameModel {
     private int currentMapIndex;
     private Ball ball;
     private int score;
-    private int reviveCount; // Theo dõi số lần hồi sinh
-    private static final int MAX_REVIVES = 3; // Tối đa 3 lần hồi sinh
-    private static final int REVIVE_PENALTY = 25; // Phạt 25 điểm mỗi lần hồi sinh
+    //private int reviveCount; // Theo dõi số lần hồi sinh
+    //private static final int MAX_REVIVES = 1; // Tối đa 2 lần hồi sinh
+    //private static final int REVIVE_PENALTY = 25; // Phạt 25 điểm mỗi lần hồi sinh
     private int savedScore; // Lưu điểm khi restart
 
     public GameModel() {
@@ -22,7 +22,7 @@ public class GameModel {
         currentMapIndex = 0;
         ball = new Ball(getGameMap());
         score = 0;
-        reviveCount = 0;
+        //reviveCount = 0;
         savedScore = 0;
     }
 
@@ -69,17 +69,23 @@ public class GameModel {
         currentMapIndex = 0; // Quay về map đầu tiên
         ball.setMap(getGameMap());
         ball.setPosition(0, 400); // Đặt lại vị trí bóng
-        reviveCount = 0; // Đặt lại số lần hồi sinh
+        //reviveCount = 0; // Đặt lại số lần hồi sinh
     }
 
-    // Hàm hồi sinh: Đặt lại vị trí bóng nhưng không thay đổi map
+    /*// Hàm hồi sinh: Đặt lại vị trí bóng nhưng không thay đổi map
     public boolean revive(int newX, int newY, int columnsToRestore) {
         if (reviveCount >= MAX_REVIVES) {
+            System.out.println("Cannot revive: Max revives (" + MAX_REVIVES + ") reached.");
             return false; // Không thể hồi sinh nữa
         }
         reviveCount++; // Tăng số lần hồi sinh
-        score -= REVIVE_PENALTY; // Trừ 25 điểm
-        if (score < 0) score = 0; // Đảm bảo điểm không âm
+        // Trừ 25 điểm, đảm bảo điểm không âm
+        if (score < REVIVE_PENALTY) {
+            score = 0;
+        } else {
+            score -= REVIVE_PENALTY;
+        }
+        System.out.println("Revive penalty applied: -" + REVIVE_PENALTY + ", new score: " + score);
 
         // Đặt lại vị trí bóng
         ball.setPosition(newX, newY);
@@ -93,19 +99,24 @@ public class GameModel {
                 if (restored >= columnsToRestore) break;
             }
         }
-
+		
         return true; // Hồi sinh thành công
     }
+	*/
+//    public int getReviveCount() {
+//        return reviveCount;
+//    }
 
-    public int getReviveCount() {
-        return reviveCount;
-    }
-
-    public int getMaxRevives() {
-        return MAX_REVIVES;
-    }
+//    public int getMaxRevives() {
+//        return MAX_REVIVES;
+//    }
 
     public int getSavedScore() {
         return savedScore;
+    }
+
+    public void resetScore() {
+        score = 0;
+        //reviveCount = 0;
     }
 }

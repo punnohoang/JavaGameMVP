@@ -51,12 +51,10 @@ public class GameTimer {
     }
 
     public void restart() {
-        if (!running) {
-            startTime = System.currentTimeMillis();
-            running = true;
-            paused = false;
-        }
-        // Không reset elapsedTime, tiếp tục từ thời gian tích lũy
+        reset(); // Reset hoàn toàn thời gian và trạng thái
+        startTime = System.currentTimeMillis();
+        running = true;
+        paused = false;
     }
 
     public long getElapsedTime() {

@@ -16,6 +16,7 @@ public class Ball {
     private final int screenWidth = 640;
     private List<Rectangle> passedColumns = new ArrayList<>();
     private int lastSafeColumnX = 0;
+    private int passedColumnsCount = 0; // Thêm biến để theo dõi số cột vượt qua
 
     public Ball(GameMap gameMap) {
         this.gameMap = gameMap;
@@ -32,22 +33,26 @@ public class Ball {
 
         boolean collided = false;
         for (Rectangle col : gameMap.getColumns()) {
+            // Nếu quá xa bóng thì bỏ qua (giảm tính toán)
+            if (Math.abs(col.x - x) > 300) continue;
+
             int top = col.y;
+            // Va chạm từ trên xuống
             if (x + width > col.x && x < col.x + col.width && y + height <= top && y + height + velocityY >= top) {
                 y = top - height;
                 velocityY = 0;
                 onGround = true;
                 collided = true;
                 lastSafeColumnX = col.x;
-                if (!passedColumns.contains(col)) {
-                    passedColumns.add(col);
-                }
-                break;
             }
-            if (x + width > col.x && !passedColumns.contains(col)) {
+
+            // Kiểm tra vượt qua cột
+            if (!passedColumns.contains(col) && x + width > col.x + col.width) {
                 passedColumns.add(col);
+                passedColumnsCount++;
             }
         }
+
 
         if (!collided) {
             if (y + velocityY >= groundY) {
@@ -100,6 +105,7 @@ public class Ball {
 
     public void setMap(GameMap newMap) {
         this.gameMap = newMap;
+        clearPassedColumns(); // Reset passedColumns khi đổi map
     }
 
     public void setPosition(int x, int y) {
@@ -135,7 +141,7 @@ public class Ball {
     }
 
     public int getPassedColumnsCount() {
-        return passedColumns.size();
+        return passedColumnsCount; // Trả về số cột đã vượt qua
     }
 
     public List<Rectangle> getPassedColumns() {
@@ -148,11 +154,13 @@ public class Ball {
 
     public void clearPassedColumns() {
         passedColumns.clear();
+        passedColumnsCount = 0; // Reset cả passedColumnsCount
     }
 
     public void addPassedColumn(Rectangle column) {
         if (!passedColumns.contains(column)) {
             passedColumns.add(column);
+            passedColumnsCount++;
         }
     }
 }
