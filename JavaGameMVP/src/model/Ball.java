@@ -33,28 +33,26 @@ public class Ball {
 
         boolean collided = false;
         for (Rectangle col : gameMap.getColumns()) {
+            // Nếu quá xa bóng thì bỏ qua (giảm tính toán)
+            if (Math.abs(col.x - x) > 300) continue;
+
             int top = col.y;
+            // Va chạm từ trên xuống
             if (x + width > col.x && x < col.x + col.width && y + height <= top && y + height + velocityY >= top) {
                 y = top - height;
                 velocityY = 0;
                 onGround = true;
                 collided = true;
                 lastSafeColumnX = col.x;
-                if (!passedColumns.contains(col)) {
-                    passedColumns.add(col);
-                    passedColumnsCount++;
-                }
-                break;
             }
-        }
 
-        // Chỉ thêm cột khi vượt qua hoàn toàn (x + width > col.x + col.width)
-        for (Rectangle col : gameMap.getColumns()) {
+            // Kiểm tra vượt qua cột
             if (!passedColumns.contains(col) && x + width > col.x + col.width) {
                 passedColumns.add(col);
                 passedColumnsCount++;
             }
         }
+
 
         if (!collided) {
             if (y + velocityY >= groundY) {

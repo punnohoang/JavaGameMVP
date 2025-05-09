@@ -9,7 +9,7 @@ import java.util.List;
 public class Renderer {
 	private final DeathZone deathZoneDrawer = new DeathZone();
 	private final int screenWidth = 640; // Giả định chiều rộng màn hình
-	private final int screenHeight = 480; // Giả định chiều cao màn hình
+	private final int screenHeight = 500; // Giả định chiều cao màn hình
 
 	public void render(Graphics g, GamePresenter presenter, int panelWidth) {
 		GameModel model = presenter.getModel();
@@ -39,8 +39,9 @@ public class Renderer {
 		if (presenter.isPaused() && !presenter.isDead() && !presenter.hasWonFinalMap()) {
 			g.setColor(Color.BLACK);
 			g.setFont(new Font("Arial", Font.BOLD, 36));
+			FontMetrics fm = g.getFontMetrics();
 			String pauseMessage = "Paused";
-			int stringWidth = g.getFontMetrics().stringWidth(pauseMessage);
+			int stringWidth = fm.stringWidth(pauseMessage);
 			g.drawString(pauseMessage, (panelWidth - stringWidth) / 2, map.getHeight() / 2);
 		}
 
@@ -56,14 +57,15 @@ public class Renderer {
 			// Vẽ "You Win"
 			g.setColor(Color.YELLOW);
 			g.setFont(new Font("Arial", Font.BOLD, 40));
-			String youWin = "You Win!";
 			FontMetrics fm = g.getFontMetrics();
+			String youWin = "You Win!";
 			int textWidth = fm.stringWidth(youWin);
 			g.drawString(youWin, (screenWidth - textWidth) / 2, screenHeight / 3);
 
 			// Vẽ top 3 người chơi
 			g.setColor(Color.WHITE);
 			g.setFont(new Font("Arial", Font.PLAIN, 20));
+			fm = g.getFontMetrics();
 			List<String> topPlayers = presenter.getTop3Players();
 			if (topPlayers == null || topPlayers.isEmpty()) {
 				String noPlayers = "No players in leaderboard yet.";
@@ -77,13 +79,11 @@ public class Renderer {
 				}
 			}
 		}
-
 	}
 
 	private void drawEndGameScreen(Graphics g, GamePresenter presenter, int panelWidth, int panelHeight) {
 		g.setColor(Color.BLACK);
 		g.setFont(new Font("Arial", Font.BOLD, 36));
-
 		FontMetrics fm = g.getFontMetrics();
 		int y = panelHeight / 2 - 50;
 
@@ -91,26 +91,30 @@ public class Renderer {
 			String gameOverMsg = "GAME OVER";
 			int stringWidth = fm.stringWidth(gameOverMsg);
 			g.drawString(gameOverMsg, (panelWidth - stringWidth) / 2, y);
-			g.setFont(new Font("Arial", Font.PLAIN, 20));
+
 			y += 50;
+			g.setFont(new Font("Arial", Font.PLAIN, 20));
+			fm = g.getFontMetrics();
+
 			String restartMsg = "Press R to Restart";
 			stringWidth = fm.stringWidth(restartMsg);
 			g.drawString(restartMsg, (panelWidth - stringWidth) / 2, y);
+
 			y += 30;
 			String quitMsg = "Press Q to Quit";
 			stringWidth = fm.stringWidth(quitMsg);
 			g.drawString(quitMsg, (panelWidth - stringWidth) / 2, y);
+
 			// if (presenter.getReviveCount() < presenter.getMaxRevives() &&
-			// !presenter.hasWonFinalMap()) {
-			// y += 30;
-			// String reviveMsg = "Press V to Revive (" + (presenter.getMaxRevives() -
-			// presenter.getReviveCount()) + " left)";
-			// stringWidth = fm.stringWidth(reviveMsg);
-			// g.drawString(reviveMsg, (panelWidth - stringWidth) / 2, y);
+			//     !presenter.hasWonFinalMap()) {
+			//     y += 30;
+			//     String reviveMsg = "Press V to Revive (" + (presenter.getMaxRevives() -
+			//         presenter.getReviveCount()) + " left)";
+			//     stringWidth = fm.stringWidth(reviveMsg);
+			//     g.drawString(reviveMsg, (panelWidth - stringWidth) / 2, y);
 			// }
 		}
 
-		g.setFont(new Font("Arial", Font.PLAIN, 20));
 		y += 40;
 		String timeMsg = "Time Played: " + presenter.getFormattedPlayTime();
 		int stringWidth = fm.stringWidth(timeMsg);
@@ -118,12 +122,17 @@ public class Renderer {
 
 		List<String> top3 = presenter.getTop3Players();
 		if (top3 != null && !top3.isEmpty()) {
-			g.setFont(new Font("Arial", Font.BOLD, 18));
 			y += 30;
+			g.setFont(new Font("Arial", Font.BOLD, 18));
+			fm = g.getFontMetrics();
+
 			String top3Msg = "Top 3 Players:";
 			stringWidth = fm.stringWidth(top3Msg);
 			g.drawString(top3Msg, (panelWidth - stringWidth) / 2, y);
+
 			g.setFont(new Font("Arial", Font.PLAIN, 16));
+			fm = g.getFontMetrics();
+
 			for (String info : top3) {
 				y += 25;
 				stringWidth = fm.stringWidth(info);
