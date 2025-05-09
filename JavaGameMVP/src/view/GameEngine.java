@@ -10,11 +10,12 @@ public class GameEngine {
     }
 
     public void update() {
-        presenter.update();
+        if (!presenter.isPaused() && !presenter.hasWonFinalMap() && !presenter.isDead()) {
+            presenter.update(); // Chỉ cập nhật khi không paused, chưa thắng, và chưa chết
+        }
     }
 
     public GamePresenter getPresenter() {
         return presenter;
-
     }
 }

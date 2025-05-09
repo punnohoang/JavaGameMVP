@@ -236,13 +236,13 @@ public class GamePresenter {
         return String.format("%02d:%02d", minutes, seconds);
     }
 
-    public int getReviveCount() {
-        return model.getReviveCount();
-    }
+//    public int getReviveCount() {
+//        return model.getReviveCount();
+//    }
 
-    public int getMaxRevives() {
-        return model.getMaxRevives();
-    }
+//    public int getMaxRevives() {
+//        return model.getMaxRevives();
+//    }
 
     public boolean isPaused() {
         return isPaused;

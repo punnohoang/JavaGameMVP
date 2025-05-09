@@ -34,7 +34,7 @@ public class Renderer {
 		g.setFont(new Font("Arial", Font.PLAIN, 16));
 		g.drawString("Time: " + presenter.getFormattedPlayTime(), 10, 50);
 		g.drawString("Map: " + (model.getCurrentMapIndex() + 1), 10, 70);
-		g.drawString("Press SPACE to Pause !" , 10, 90);
+		// g.drawString("Press SPACE to Pause !" , 10, 90);
 
 		if (presenter.isPaused() && !presenter.isDead() && !presenter.hasWonFinalMap()) {
 			g.setColor(Color.BLACK);
@@ -100,26 +100,14 @@ public class Renderer {
 			String quitMsg = "Press Q to Quit";
 			stringWidth = fm.stringWidth(quitMsg);
 			g.drawString(quitMsg, (panelWidth - stringWidth) / 2, y);
-			if (presenter.getReviveCount() < presenter.getMaxRevives() && !presenter.hasWonFinalMap()) {
-				y += 30;
-				// String reviveMsg = "Press V to Revive (" + (presenter.getMaxRevives() -
-				// presenter.getReviveCount()) + " left)";
-				// stringWidth = fm.stringWidth(reviveMsg);
-				// g.drawString(reviveMsg, (panelWidth - stringWidth) / 2, y);
-			}
-		} else if (presenter.hasWonFinalMap()) {
-			String winMsg = "YOU WIN!";
-			int stringWidth = fm.stringWidth(winMsg);
-			g.drawString(winMsg, (panelWidth - stringWidth) / 2, y);
-			g.setFont(new Font("Arial", Font.PLAIN, 20));
-			y += 50;
-			String restartMsg = "Press R to Restart";
-			stringWidth = fm.stringWidth(restartMsg);
-			g.drawString(restartMsg, (panelWidth - stringWidth) / 2, y);
-			y += 30;
-			String quitMsg = "Press Q to Quit";
-			stringWidth = fm.stringWidth(quitMsg);
-			g.drawString(quitMsg, (panelWidth - stringWidth) / 2, y);
+			// if (presenter.getReviveCount() < presenter.getMaxRevives() &&
+			// !presenter.hasWonFinalMap()) {
+			// y += 30;
+			// String reviveMsg = "Press V to Revive (" + (presenter.getMaxRevives() -
+			// presenter.getReviveCount()) + " left)";
+			// stringWidth = fm.stringWidth(reviveMsg);
+			// g.drawString(reviveMsg, (panelWidth - stringWidth) / 2, y);
+			// }
 		}
 
 		g.setFont(new Font("Arial", Font.PLAIN, 20));
