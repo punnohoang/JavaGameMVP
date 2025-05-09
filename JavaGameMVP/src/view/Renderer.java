@@ -32,8 +32,8 @@ public class Renderer {
 
 		g.setColor(Color.BLACK);
 		g.setFont(new Font("Arial", Font.PLAIN, 16));
-		g.drawString("Time: " + presenter.getFormattedPlayTime(), 10, 50);
-		g.drawString("Map: " + (model.getCurrentMapIndex() + 1), 10, 70);
+		g.drawString("Time: " + presenter.getFormattedPlayTime(), 10, 20);
+		g.drawString("Map: " + (model.getCurrentMapIndex() + 1), 10, 40);
 		// g.drawString("Press SPACE to Pause !" , 10, 90);
 
 		if (presenter.isPaused() && !presenter.isDead() && !presenter.hasWonFinalMap()) {
@@ -130,7 +130,7 @@ public class Renderer {
 			stringWidth = fm.stringWidth(top3Msg);
 			g.drawString(top3Msg, (panelWidth - stringWidth) / 2, y);
 
-			g.setFont(new Font("Arial", Font.PLAIN, 16));
+			g.setFont(new Font("Arial", Font.BOLD, 16));
 			fm = g.getFontMetrics();
 
 			for (String info : top3) {

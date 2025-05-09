@@ -18,7 +18,7 @@ public class MapDataLoader {
                 //System.out.println("Đọc file từ classpath: " + fileName);
             } else {
                 // Nếu không có trong classpath, đọc từ thư mục src/model
-            	File file = new File("C:\\Users\\AD MIN\\git\\JavaGameend\\JavaGameMVP\\src\\model\\" + fileName);
+            	File file = new File("C:\\Users\\hoang\\git\\JavaGameMVP\\JavaGameMVP\\src\\model\\" + fileName);
                 if (file.exists()) {
                     reader = new BufferedReader(new FileReader(file));
                     //System.out.println("Đọc file từ hệ thống: " + file.getAbsolutePath());
