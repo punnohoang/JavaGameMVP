@@ -19,6 +19,7 @@ public class GamePresenter {
     private boolean gameOver = false;
     public boolean isPaused = false;
     private int lastPassedColumnsCount = 0;
+    private static final boolean IS_PAUSE_ENABLED = true; // Đổi thành true để bật pause
 
     public GamePresenter(GameModel model, String playerName) {
         this.model = model;
@@ -39,14 +40,14 @@ public class GamePresenter {
             int newColumns = currentPassedColumns - lastPassedColumnsCount;
             model.addScore(newColumns);
             lastPassedColumnsCount = currentPassedColumns;
-            DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
+
         }
 
         if (ball.isDead() && !wasDead && !model.isWin()) {
             wasDead = true;
             gameTimer.pause();
             gameOver = true;
- isPaused = true;
+            isPaused = true;
             DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
             return;
         } else if (!ball.isDead()) {
@@ -63,7 +64,6 @@ public class GamePresenter {
             if (!model.isLastMap()) {
                 model.nextMap();
                 lastPassedColumnsCount = 0;
-                DatabaseManager.updateScore(scoreId, model.getScore(), (int) (gameTimer.getElapsedTime() / 1000));
             } else if (!hasWonFinalMap) {
                 // Thắng map cuối: Điều chỉnh điểm để đạt 100
                 int currentScore = model.getScore();
@@ -122,7 +122,7 @@ public class GamePresenter {
         gameOver = false;
         isPaused = false;
         gameTimer.restart();
-        scoreId = DatabaseManager.recordPlayTime(playerName, 0, 0);
+//        scoreId = DatabaseManager.recordPlayTime(playerName, 0, 0);
         System.out.println("Restarted to map " + (model.getCurrentMapIndex() + 1));
     }
     /*
@@ -170,7 +170,7 @@ public class GamePresenter {
     }
 
     public void handleKeyPressed(int keyCode) {
-        if (keyCode == KeyEvent.VK_SPACE) {
+        if ( IS_PAUSE_ENABLED && keyCode == KeyEvent.VK_SPACE) {
             togglePause();
             return;
         }
