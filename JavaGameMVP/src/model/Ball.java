@@ -16,6 +16,7 @@ public class Ball {
     private final int screenWidth = 640;
     private List<Rectangle> passedColumns = new ArrayList<>();
     private int lastSafeColumnX = 0;
+    private int passedColumnsCount = 0; // Thêm biến để theo dõi số cột vượt qua
 
     public Ball(GameMap gameMap) {
         this.gameMap = gameMap;
@@ -41,11 +42,17 @@ public class Ball {
                 lastSafeColumnX = col.x;
                 if (!passedColumns.contains(col)) {
                     passedColumns.add(col);
+                    passedColumnsCount++;
                 }
                 break;
             }
-            if (x + width > col.x && !passedColumns.contains(col)) {
+        }
+
+        // Chỉ thêm cột khi vượt qua hoàn toàn (x + width > col.x + col.width)
+        for (Rectangle col : gameMap.getColumns()) {
+            if (!passedColumns.contains(col) && x + width > col.x + col.width) {
                 passedColumns.add(col);
+                passedColumnsCount++;
             }
         }
 
@@ -100,6 +107,7 @@ public class Ball {
 
     public void setMap(GameMap newMap) {
         this.gameMap = newMap;
+        clearPassedColumns(); // Reset passedColumns khi đổi map
     }
 
     public void setPosition(int x, int y) {
@@ -135,7 +143,7 @@ public class Ball {
     }
 
     public int getPassedColumnsCount() {
-        return passedColumns.size();
+        return passedColumnsCount; // Trả về số cột đã vượt qua
     }
 
     public List<Rectangle> getPassedColumns() {
@@ -148,11 +156,13 @@ public class Ball {
 
     public void clearPassedColumns() {
         passedColumns.clear();
+        passedColumnsCount = 0; // Reset cả passedColumnsCount
     }
 
     public void addPassedColumn(Rectangle column) {
         if (!passedColumns.contains(column)) {
             passedColumns.add(column);
+            passedColumnsCount++;
         }
     }
 }
